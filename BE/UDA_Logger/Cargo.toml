@@ -1,5 +1,5 @@
 [package]
-name = "BE"
+name = "UDA_Logger"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,6 +7,4 @@ edition = "2021"
 
 [dependencies]
 reqwest = "0.11.22"
-serde_json = "1.0.107"
-Basiq_API = {path = "./Basiq_API", version = "0.1.0"}
-UDA_Logger = {version = "0.1.0", path = "./UDA_Logger"}
+serde_json = "1.0.108"
