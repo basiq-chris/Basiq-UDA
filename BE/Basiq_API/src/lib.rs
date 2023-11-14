@@ -16,6 +16,7 @@ pub mod Core {
 
 
 // Data Structures
+#[derive(Clone)]
 pub struct Token {
     pub val: String,
     pub exp: u64

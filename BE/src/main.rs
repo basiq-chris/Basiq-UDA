@@ -1,5 +1,8 @@
 use Basiq_API;
+use SXL;
 
 fn main() {
-    println!("Hello, world!");
+    //Temporary flow
+    let thread_logger = SXL::LogQueue::new();
+    
 }
