@@ -10,14 +10,11 @@ pub enum Direction {
 }
 
 pub trait SXLoggableRequest {
-    fn get_verb(x: reqwest::blocking::Request);
-    fn get_header(x: reqwest::blocking::Request);
-
+    
 }
 
 pub trait SXLoggableResponse {
-    fn get_status(x: reqwest::blocking::Response);
-    fn get_header(x: reqwest::blocking::Response);
+    
 }
 
 
@@ -27,6 +24,9 @@ pub struct Log<Req: SXLoggableRequest, Res: SXLoggableResponse> {
     pub response: Res
 }
 
+pub struct TokenLog {
+    
+}
 
 
 #[derive(Default)]
