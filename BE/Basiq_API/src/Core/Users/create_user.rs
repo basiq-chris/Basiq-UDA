@@ -3,7 +3,7 @@ use reqwest::{self, header};
 use serde_json;
 use crate::{Token, User};
 
-pub fn create(user: User, tkn: &Token) -> Log {
+pub fn create<Req: SXL::SXLoggableRequest, Res: SXL::SXLoggableResponse>(user: User, tkn: &Token) -> Log<Req, Res> {
     if user.email.is_none() && user.phone_number.is_none() {
         panic!("Must have at least email or phone number");
     }

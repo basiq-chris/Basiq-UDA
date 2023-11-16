@@ -10,40 +10,6 @@ pub mod Core {
     }
 }
 
-
-
-
-
-
-// Data Structures
-#[derive(Clone)]
-pub struct Token {
-    pub val: String,
-    pub exp: u64
-}
-
-impl Token {
-    pub fn get_token(x: Self) -> Self {
-        if !Self::has_expired(&x) {
-            return x
-        } 
-        let x: Token;
-            let auth = Core::Authentication::gen_auth::get();
-            x = Token {
-                val: auth.0,
-                exp: auth.1
-            };
-        x
-        }
-
-    fn has_expired(x: &Self) -> bool {
-        if x.exp < SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() {
-            return false
-        }
-        true
-    }
-}
-
 #[derive(Default)]
 pub struct User {
    pub first_name: Option<String>,
