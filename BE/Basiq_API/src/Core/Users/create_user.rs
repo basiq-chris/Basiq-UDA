@@ -1,16 +1,15 @@
-use SXL::Log;
+use SXL::{Log, Token, User};
 use reqwest::{self, header};
 use serde_json;
-use crate::{Token, User};
 
-pub fn create<Req: SXL::SXLoggableRequest, Res: SXL::SXLoggableResponse>(user: User, tkn: &Token) -> Log<Req, Res> {
-    if user.email.is_none() && user.phone_number.is_none() {
+pub fn create(user: User, tkn: &Token) -> Log {
+    if user.email.is_none() && user.mobile.is_none() {
         panic!("Must have at least email or phone number");
     }
 
     let req = reqwest::blocking::Client::new()
     .post("https://au-api.basiq.io/users")
-    .bearer_auth(tkn.val.clone())
+    .bearer_auth(tkn.token.clone())
     .header(header::CONTENT_TYPE, "application/json")
     .header(header::ACCEPT, "application/json")
     .json(serde_json::Value::String(format!(r#"
@@ -21,7 +20,15 @@ pub fn create<Req: SXL::SXLoggableRequest, Res: SXL::SXLoggableResponse>(user: U
             "middleName": {},
             "lastName": {}
         }}
-    "#, user.email.unwrap_or_default(), user.phone_number.unwrap_or_default(), user.first_name.unwrap_or_default(), user.middle_name.unwrap_or_default(), user.last_name.unwrap_or_default())).as_object().unwrap());
+    "#, user.email.unwrap_or_default(), user.mobile.unwrap_or_default(), user.first_name.unwrap_or_default(), user.middle_name.unwrap_or_default(), user.last_name.unwrap_or_default())).as_object().unwrap());
 
-    return SXL::Log::send_and_log(req, SXL::RequestType::User);
+    let requ = SXL::UserRequest {
+        request_data: req,
+        verb: req.try_clone().unwrap().build().unwrap().method().clone(),
+        headers: req.try_clone().unwrap().build().unwrap().headers().clone(),
+        data: user
+    };
+
+    let resp = requ.request_data.send().unwrap();
+
 }
