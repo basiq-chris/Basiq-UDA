@@ -1,7 +1,6 @@
 use std::fs;
 use SXL::{Log, TokenResponse, SXLoggableRequest};
 use reqwest::{self, header};
-use serde_json::Value;
 
 pub fn get() -> Log {
     let key = read_key();
@@ -21,11 +20,7 @@ pub fn get() -> Log {
     let tR: TokenResponse;
     {
         let resp = tr.send();
-        let json: Value = serde_json::from_str(resp.json().unwrap()).unwrap();
-        tR = TokenResponse {
-            response_data: resp,
-            token: SXL::Token::from_raw_json(json)
-        }
+        tR = TokenResponse::new(resp);
     }
 
     Log {
