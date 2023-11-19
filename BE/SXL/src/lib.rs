@@ -79,6 +79,13 @@ impl Token {
     pub fn get_data(&self) -> String {
         String::from("T:".to_owned() + &self.token.to_string() + "E:" + &self.expires.to_string())
     }
+
+    pub fn get_token(&self) -> Result<String, String> {
+        if self.expires < SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() {
+            return Err("Expired".to_string());
+        }
+        Ok(self.token.clone())
+    }
 }
 
 pub struct TokenRequest {
@@ -144,6 +151,13 @@ impl TokenResponse {
         TokenResponse {
             response_data: response,
             token: Token::from_raw_json(serde_json::from_str(json).unwrap()),
+        }
+    }
+
+    pub fn get_token(&self) -> String {
+        match self.token.get_token() {
+            Ok(val) => val,
+            Err(_) => panic!("Humongous lag what?!")
         }
     }
 }

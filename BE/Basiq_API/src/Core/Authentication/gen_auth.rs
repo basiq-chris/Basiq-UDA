@@ -2,7 +2,7 @@ use std::fs;
 use SXL::{Log, TokenResponse, SXLoggableRequest};
 use reqwest::{self, header};
 
-pub fn get() -> Log {
+pub fn get(thread_client: reqwest::blocking::Client) -> Log {
     let key = read_key();
     let req =  reqwest::blocking::Client::new()
     .post("https://au-api.basiq.io/token")

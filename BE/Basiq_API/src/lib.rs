@@ -8,3 +8,8 @@ pub mod Core {
         pub mod retrieve_user;
     }
 }
+
+#[allow(non_snake_case)]
+pub mod Net {
+    pub mod auth_client;
+}

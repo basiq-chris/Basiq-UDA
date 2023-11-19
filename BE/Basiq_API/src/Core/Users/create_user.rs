@@ -2,10 +2,12 @@ use SXL::{Log, Token, User};
 use reqwest::{self, header};
 use serde_json;
 
-pub fn create(user: User, tkn: &Token) -> Log {
+pub fn create(user: User, tkn: &Token, thread_client: reqwest::blocking::Client) -> Log {
     if user.email.is_none() && user.mobile.is_none() {
         panic!("Must have at least email or phone number");
     }
+
+    
     let usrcpy = user.clone();
 
     let req = reqwest::blocking::Client::new()
