@@ -2,7 +2,6 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde_json::Value;
 
-
 pub enum RequestType {
     User,
     Token,
@@ -18,7 +17,7 @@ pub trait SXLoggableRequest {
     fn get_headers(&self) -> reqwest::header::HeaderMap;
     fn get_data(&self) -> String;
     fn send(&self) -> reqwest::blocking::Response;
-    }
+}
 
 pub trait SXLoggableResponse {
     fn get_status(&self) -> reqwest::StatusCode;
@@ -31,8 +30,6 @@ pub struct Log {
     pub request: Box<dyn SXLoggableRequest>,
     pub response: Box<dyn SXLoggableResponse>,
 }
-
-
 
 #[derive(Default)]
 pub struct LogQueue {
@@ -58,26 +55,36 @@ impl LogQueue {
     }
 }
 
-
 //TOKENS
 pub struct Token {
-    pub token: String,
-    pub expires: u64
+    token: String,
+    expires: u64,
 }
 
 impl Token {
     pub fn from_raw_json(json: serde_json::Value) -> Self {
         let access = json["access_token"].as_str().unwrap();
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() + json["expires_in"].as_u64().unwrap();
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+            + json["expires_in"].as_u64().unwrap();
 
         Token {
             token: access.to_string(),
-            expires: timestamp
+            expires: timestamp,
         }
     }
 
     pub fn get_data(&self) -> String {
         String::from("T:".to_owned() + &self.token.to_string() + "E:" + &self.expires.to_string())
+    }
+
+    pub fn get_token(&self) -> Result<String, String> {
+        if self.expires < SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() {
+            return Err("Expired".to_string());
+        }
+        Ok(self.token.clone())
     }
 }
 
@@ -89,23 +96,35 @@ pub struct TokenRequest {
 
 impl TokenRequest {
     pub fn dev_switch(mut self) -> Self {
-        self.isdev =  true;
+        self.isdev = true;
         self
     }
 }
 
 impl SXLoggableRequest for TokenRequest {
     fn get_verb(&self) -> reqwest::Method {
-        self.request_data.try_clone().unwrap().build().unwrap().method().clone()
+        self.request_data
+            .try_clone()
+            .unwrap()
+            .build()
+            .unwrap()
+            .method()
+            .clone()
     }
 
     fn get_headers(&self) -> reqwest::header::HeaderMap {
-        self.request_data.try_clone().unwrap().build().unwrap().headers().clone()
+        self.request_data
+            .try_clone()
+            .unwrap()
+            .build()
+            .unwrap()
+            .headers()
+            .clone()
     }
 
     fn get_data(&self) -> String {
         if self.isdev {
-            return String::from("IF YOU NEED THE API KEY ASK THE PACKAGE MAINTAINER")
+            return String::from("IF YOU NEED THE API KEY ASK THE PACKAGE MAINTAINER");
         }
         self.api_key.clone()
     }
@@ -113,14 +132,34 @@ impl SXLoggableRequest for TokenRequest {
     fn send(&self) -> reqwest::blocking::Response {
         match self.request_data.try_clone().unwrap().send() {
             Ok(val) => val,
-            Err(_) => panic!("Request cannot be made")
+            Err(_) => panic!("Request cannot be made"),
         }
     }
 }
 
 pub struct TokenResponse {
     pub response_data: reqwest::blocking::Response,
-    pub token: Token
+    pub token: Token,
+}
+
+impl TokenResponse {
+    pub fn new(mut response: reqwest::blocking::Response) -> Self {
+        let json;
+        let mut buf: Vec<u8> = vec![];
+        let _ = response.copy_to(&mut buf);
+        json = std::str::from_utf8(buf.as_ref()).unwrap();
+        TokenResponse {
+            response_data: response,
+            token: Token::from_raw_json(serde_json::from_str(json).unwrap()),
+        }
+    }
+
+    pub fn get_token(&self) -> String {
+        match self.token.get_token() {
+            Ok(val) => val,
+            Err(_) => panic!("Humongous lag what?!")
+        }
+    }
 }
 
 impl SXLoggableResponse for TokenResponse {
@@ -138,29 +177,58 @@ impl SXLoggableResponse for TokenResponse {
 }
 
 //USERS
+#[derive(Clone)]
 pub struct User {
     pub mobile: Option<String>,
     pub email: Option<String>,
     pub first_name: Option<String>,
     pub middle_name: Option<String>,
-    pub last_name: Option<String>
+    pub last_name: Option<String>,
 }
 
 impl User {
     pub fn get_data(&self) -> String {
-        String::from("M:".to_string() + self.mobile.clone().unwrap_or_else(|| " ".to_string()).as_str().as_ref() + "E:" + self.email.clone().unwrap_or_else(|| " ".to_string()).as_str() + "F:" + self.first_name.clone().unwrap_or_else(|| " ".to_string()).as_str() + "m:" + self.middle_name.clone().unwrap_or_else(|| " ".to_string()).as_str() + "L:" + self.last_name.clone().unwrap_or_else(|| " ".to_string()).as_str())
+        String::from(
+            "M:".to_string()
+                + self
+                    .mobile
+                    .clone()
+                    .unwrap_or_else(|| " ".to_string())
+                    .as_str()
+                    .as_ref()
+                + "E:"
+                + self
+                    .email
+                    .clone()
+                    .unwrap_or_else(|| " ".to_string())
+                    .as_str()
+                + "F:"
+                + self
+                    .first_name
+                    .clone()
+                    .unwrap_or_else(|| " ".to_string())
+                    .as_str()
+                + "m:"
+                + self
+                    .middle_name
+                    .clone()
+                    .unwrap_or_else(|| " ".to_string())
+                    .as_str()
+                + "L:"
+                + self
+                    .last_name
+                    .clone()
+                    .unwrap_or_else(|| " ".to_string())
+                    .as_str(),
+        )
     }
-}
-
-pub struct BasiqUser {
-    user_id: String
 }
 
 pub struct UserRequest {
     pub request_data: reqwest::blocking::RequestBuilder,
     pub verb: reqwest::Method,
     pub headers: reqwest::header::HeaderMap,
-    pub data: User
+    pub data: User,
 }
 
 impl SXLoggableRequest for UserRequest {
@@ -179,7 +247,7 @@ impl SXLoggableRequest for UserRequest {
     fn send(&self) -> reqwest::blocking::Response {
         match self.request_data.try_clone().unwrap().send() {
             Ok(val) => val,
-            Err(_) => panic!("Unable to send request")
+            Err(_) => panic!("Unable to send request"),
         }
     }
 }
@@ -187,11 +255,35 @@ impl SXLoggableRequest for UserRequest {
 pub struct UserResponse {
     pub status: reqwest::StatusCode,
     pub headers: reqwest::header::HeaderMap,
-    pub data: String
+    pub data: String,
 }
 
 impl UserResponse {
-    pub fn from_raw_json(mut self, json: Value) -> Self {
-        self.data;
+    fn from_create_json(json: Value) -> String {
+        return String::from(json["id"].as_str().unwrap());
+    }
+
+    pub fn new(response: reqwest::blocking::Response) -> Self {
+        UserResponse {
+            status: response.status(),
+            headers: response.headers().clone(),
+            data: Self::from_create_json(
+                serde_json::from_str(response.text().unwrap().as_str()).unwrap(),
+            ),
+        }
+    }
+}
+
+impl SXLoggableResponse for UserResponse {
+    fn get_status(&self) -> reqwest::StatusCode {
+        self.status
+    }
+
+    fn get_headers(&self) -> reqwest::header::HeaderMap {
+        self.headers.clone()
+    }
+
+    fn get_data(&self) -> String {
+        self.data.clone()
     }
 }

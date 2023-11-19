@@ -1,8 +1,12 @@
 use Basiq_API;
 use SXL;
+use actix_web::HttpServer;
 
-fn main() {
-    //Temporary flow
-    let thread_logger = SXL::LogQueue::new();
-    
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    HttpServer::new(|| {
+        App::new()
+    })
 }
+
