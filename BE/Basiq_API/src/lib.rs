@@ -6,10 +6,6 @@ pub mod Core {
     pub mod Users {
         pub mod create_user;
         pub mod retrieve_user;
+        pub mod update_user;
     }
-}
-
-#[allow(non_snake_case)]
-pub mod Net {
-    pub mod auth_client;
 }

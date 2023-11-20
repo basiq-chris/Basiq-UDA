@@ -188,38 +188,17 @@ pub struct User {
 
 impl User {
     pub fn get_data(&self) -> String {
+        let usrdata = self.clone();
         String::from(
-            "M:".to_string()
-                + self
-                    .mobile
-                    .clone()
-                    .unwrap_or_else(|| " ".to_string())
-                    .as_str()
-                    .as_ref()
-                + "E:"
-                + self
-                    .email
-                    .clone()
-                    .unwrap_or_else(|| " ".to_string())
-                    .as_str()
-                + "F:"
-                + self
-                    .first_name
-                    .clone()
-                    .unwrap_or_else(|| " ".to_string())
-                    .as_str()
-                + "m:"
-                + self
-                    .middle_name
-                    .clone()
-                    .unwrap_or_else(|| " ".to_string())
-                    .as_str()
-                + "L:"
-                + self
-                    .last_name
-                    .clone()
-                    .unwrap_or_else(|| " ".to_string())
-                    .as_str(),
+            format!(r#"
+            {{
+                "email":"{}",
+                "mobile":"{}",
+                "first_name":"{}",
+                "middle_name":"{}",
+                "last_name":"{}"
+            }}
+            "#, usrdata.email.unwrap_or_default(), usrdata.mobile.unwrap_or_default(), usrdata.first_name.unwrap_or_default(), usrdata.middle_name.unwrap_or_default(), usrdata.last_name.unwrap_or_default())
         )
     }
 }
@@ -228,7 +207,7 @@ pub struct UserRequest {
     pub request_data: reqwest::blocking::RequestBuilder,
     pub verb: reqwest::Method,
     pub headers: reqwest::header::HeaderMap,
-    pub data: User,
+    pub data: String,
 }
 
 impl SXLoggableRequest for UserRequest {
@@ -241,7 +220,7 @@ impl SXLoggableRequest for UserRequest {
     }
 
     fn get_data(&self) -> String {
-        self.data.get_data()
+        self.data.clone()
     }
 
     fn send(&self) -> reqwest::blocking::Response {
@@ -255,21 +234,15 @@ impl SXLoggableRequest for UserRequest {
 pub struct UserResponse {
     pub status: reqwest::StatusCode,
     pub headers: reqwest::header::HeaderMap,
-    pub data: String,
+    pub data: Value,
 }
 
 impl UserResponse {
-    fn from_create_json(json: Value) -> String {
-        return String::from(json["id"].as_str().unwrap());
-    }
-
     pub fn new(response: reqwest::blocking::Response) -> Self {
         UserResponse {
             status: response.status(),
             headers: response.headers().clone(),
-            data: Self::from_create_json(
-                serde_json::from_str(response.text().unwrap().as_str()).unwrap(),
-            ),
+            data: serde_json::from_str(response.text().unwrap().as_str()).unwrap(),
         }
     }
 }
@@ -284,6 +257,6 @@ impl SXLoggableResponse for UserResponse {
     }
 
     fn get_data(&self) -> String {
-        self.data.clone()
+        self.data.to_string()
     }
 }
