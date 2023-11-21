@@ -260,3 +260,14 @@ impl SXLoggableResponse for UserResponse {
         self.data.to_string()
     }
 }
+
+//Consents
+pub struct Consent {
+    pub data: Value
+}
+
+impl Consent {
+    pub fn serialise(raw: &str) -> Self {
+        Consent { data: serde_json::from_str(raw).unwrap() }
+    }
+}
