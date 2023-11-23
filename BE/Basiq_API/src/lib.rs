@@ -11,5 +11,16 @@ pub mod Core {
     }
     pub mod Consents {
         pub mod retrieve_consents;
+        pub mod delete_consent;
+    }
+    pub mod AuthLinks {
+        pub mod create_auth_link;
+        pub mod delete_auth_link;
+        pub mod retrieve_auth_link;
+    }
+    pub mod Jobs {
+        pub mod retrieve_job;
+        pub mod get_user_jobs;
+        pub mod create_mfa_response;
     }
 }
