@@ -1,4 +1,4 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{time::{SystemTime, UNIX_EPOCH}, future::Pending};
 
 use reqwest::{StatusCode, RequestBuilder, Method, header::HeaderMap};
 use serde_json::Value;
@@ -8,6 +8,7 @@ pub enum RequestType {
     Token,
     Consent,
     AuthLink,
+    Job,
 }
 
 pub enum Direction {
@@ -367,5 +368,135 @@ impl SXLoggableResponse for ConsentResponse {
 
     fn get_data(&self) -> String {
         self.data.data.to_string()
+    }
+}
+
+//Jobs
+pub enum JobStatus {
+    Pending,
+    InProgress,
+    Success,
+    Failed
+}
+pub struct Job {
+    pub credentals_status: JobStatus,
+    pub retrieve_account_status: JobStatus,
+    pub retrieve_transactions_status: JobStatus
+}
+
+impl Job {
+    pub fn from_job_object(json: Value) -> Self {
+        let mut steps: Vec<JobStatus> = Vec::new();
+
+        for i in json["steps"].as_array().unwrap() {
+            match i["status"].as_str().unwrap() {
+                "in-progress" => steps.push(JobStatus::InProgress),
+                "success" => steps.push(JobStatus::Success),
+                "pending" => steps.push(JobStatus::Pending),
+                "failed" => steps.push(JobStatus::Failed),
+                _ => steps.push(JobStatus::Pending)
+            }
+        }
+
+        Job {
+            retrieve_transactions_status: steps.pop().unwrap(),
+            retrieve_account_status: steps.pop().unwrap(),
+            credentals_status: steps.pop().unwrap()
+        }
+    }
+
+    pub fn from_job_object_ref(json: &Value) -> Self {
+        let mut steps: Vec<JobStatus> = Vec::new();
+
+        for i in json["steps"].as_array().unwrap() {
+            match i["status"].as_str().unwrap() {
+                "in-progress" => steps.push(JobStatus::InProgress),
+                "success" => steps.push(JobStatus::Success),
+                "pending" => steps.push(JobStatus::Pending),
+                "failed" => steps.push(JobStatus::Failed),
+                _ => steps.push(JobStatus::Pending)
+            }
+        }
+
+        Job {
+            retrieve_transactions_status: steps.pop().unwrap(),
+            retrieve_account_status: steps.pop().unwrap(),
+            credentals_status: steps.pop().unwrap()
+        }
+    }
+}
+
+impl Default for Job {
+    fn default() -> Self {
+        Job {
+            credentals_status: JobStatus::Pending,
+            retrieve_account_status: JobStatus::Pending,
+            retrieve_transactions_status: JobStatus::Pending,
+        }
+    }
+}
+
+pub struct iJob {
+    pub institution: String,
+    pub jobs: Job
+}
+
+pub struct JobRequest {
+    pub request_data: reqwest::blocking::RequestBuilder,
+    pub verb: Method,
+    pub header: HeaderMap,
+    pub data: String
+}
+
+impl SXLoggableRequest for JobRequest {
+    fn get_verb(&self) -> reqwest::Method {
+        self.verb.clone()
+    }
+
+    fn get_headers(&self) -> reqwest::header::HeaderMap {
+        self.header.clone()
+    }
+
+    fn get_data(&self) -> String {
+        self.data.clone()
+    }
+
+    fn send(&self) -> reqwest::blocking::Response {
+        self.request_data.try_clone().unwrap().send().unwrap()
+    }
+}
+
+pub struct JobsResponse {
+    pub status: StatusCode,
+    pub header: HeaderMap,
+    pub data: Vec<iJob>
+}
+
+impl JobsResponse {
+    pub fn add_jobs(json: Value) -> Vec<iJob> {
+        let mut jobs: Vec<iJob> = Vec::new();
+        for i in json["data"].as_array() {
+            for j in i {
+                let institution = j["institution"]["id"].as_str().unwrap();
+                let job = Job::from_job_object_ref(j);
+                jobs.push(iJob { institution: institution.to_string(), jobs: job })
+            }
+        }
+
+        jobs
+    }
+}
+
+impl SXLoggableResponse for JobsResponse {
+    fn get_status(&self) -> reqwest::StatusCode {
+        self.status.clone()
+    }
+
+    fn get_headers(&self) -> reqwest::header::HeaderMap {
+        self.header.clone()
+    }
+
+    fn get_data(&self) -> String {
+        todo!()
     }
 }
