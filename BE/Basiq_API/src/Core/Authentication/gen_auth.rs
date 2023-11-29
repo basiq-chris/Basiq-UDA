@@ -4,8 +4,7 @@ use reqwest::{self, header};
 
 pub fn get(thread_client: reqwest::blocking::Client) -> (Log, String) {
     let key = read_key();
-    let req =  reqwest::blocking::Client::new()
-    .post("https://au-api.basiq.io/token")
+    let req =  thread_client.post("https://au-api.basiq.io/token")
     .header(header::AUTHORIZATION, "Basic ".to_owned() + &key)
     .header(header::ACCEPT, "application/json")
     .header(header::CONTENT_TYPE, "application/x-www-form-url");

@@ -1,10 +1,13 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use reqwest::{StatusCode, RequestBuilder, Method, header::HeaderMap};
 use serde_json::Value;
 
 pub enum RequestType {
     User,
     Token,
+    Consent,
+    AuthLink,
 }
 
 pub enum Direction {
@@ -261,13 +264,108 @@ impl SXLoggableResponse for UserResponse {
     }
 }
 
+//Auth_Link
+pub struct AuthLink {
+    pub data: Value
+}
+
+impl AuthLink {
+    pub fn serialise(raw: &str) -> Self {
+        AuthLink { data: serde_json::from_str(raw).unwrap() }
+    }
+}
+
+pub struct AuthLinkRequest {
+    pub request_data: reqwest::blocking::RequestBuilder,
+    pub verb: reqwest::Method,
+    pub headers: reqwest::header::HeaderMap,
+    pub data: String
+}
+
+impl SXLoggableRequest for AuthLinkRequest {
+    fn get_verb(&self) -> reqwest::Method {
+        self.verb.clone()
+    }
+
+    fn get_headers(&self) -> reqwest::header::HeaderMap {
+        self.headers.clone()
+    }
+
+    fn get_data(&self) -> String {
+        self.data.clone()
+    }
+
+    fn send(&self) -> reqwest::blocking::Response {
+        self.request_data.try_clone().unwrap().send().unwrap()
+    }
+}
+
+pub struct AuthLinkResponse {
+    pub status: StatusCode,
+    pub headers: reqwest::header::HeaderMap,
+    pub data: AuthLink
+}
+
+impl SXLoggableResponse for AuthLinkResponse {
+    fn get_status(&self) -> reqwest::StatusCode {
+        self.status.clone()
+    }
+
+    fn get_headers(&self) -> reqwest::header::HeaderMap {
+        self.headers.clone()
+    }
+
+    fn get_data(&self) -> String {
+        self.data.data.as_str().map(String::from).unwrap()
+    }
+}
+
 //Consents
 pub struct Consent {
     pub data: Value
 }
 
-impl Consent {
-    pub fn serialise(raw: &str) -> Self {
-        Consent { data: serde_json::from_str(raw).unwrap() }
+pub struct ConsentRequest {
+    pub request_data: reqwest::blocking::RequestBuilder,
+    pub verb: Method,
+    pub headers: HeaderMap,
+    pub data: String
+}
+
+impl SXLoggableRequest for ConsentRequest {
+    fn get_verb(&self) -> reqwest::Method {
+        self.verb.clone()
+    }
+
+    fn get_headers(&self) -> reqwest::header::HeaderMap {
+        self.headers.clone()
+    }
+
+    fn get_data(&self) -> String {
+        self.data.clone()
+    }
+
+    fn send(&self) -> reqwest::blocking::Response {
+        self.request_data.try_clone().unwrap().send().unwrap()
+    }
+}
+
+pub struct ConsentResponse {
+    pub status: StatusCode,
+    pub header: HeaderMap,
+    pub data: Consent
+}
+
+impl SXLoggableResponse for ConsentResponse {
+    fn get_status(&self) -> reqwest::StatusCode {
+        self.status.clone()
+    }
+
+    fn get_headers(&self) -> reqwest::header::HeaderMap {
+        self.header.clone()
+    }
+
+    fn get_data(&self) -> String {
+        self.data.data.to_string()
     }
 }
