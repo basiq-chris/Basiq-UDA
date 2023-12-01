@@ -24,3 +24,10 @@ pub mod Core {
         //pub mod create_mfa_response;
     }
 }
+
+#[allow(non_snake_case)]
+pub mod Data {
+    pub mod Accounts {
+        pub mod get_user_accounts;
+    }
+}

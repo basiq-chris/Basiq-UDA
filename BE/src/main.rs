@@ -4,9 +4,7 @@ use actix_web::HttpServer;
 
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
-        App::new()
-    })
+async fn main() {
+    
 }
 
