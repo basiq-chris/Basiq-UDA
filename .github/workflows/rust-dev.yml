@@ -17,4 +17,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Lint
-      run: cargo check -C BE/
+      run: cargo -C BE/ check
