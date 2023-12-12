@@ -1,4 +1,4 @@
-use std::{ops::Deref, panic};
+use std::{ops::Deref, panic, time::{SystemTime, UNIX_EPOCH}};
 
 use reqwest::Response;
 use serde_json::Value;
@@ -43,13 +43,14 @@ impl ResponseLog {
                             base.data = Box::new(format!(r#"{{"id":{},"email":{},"mobile":{},"firstName":{},"middleName":{},"lastName":{}}}"#, json["id"].as_str().unwrap_or_default(), json["email"].as_str().unwrap_or_default(), json["mobile"].as_str().unwrap_or_default(), json["firstName"].as_str().unwrap_or_default(), json["middleName"].as_str().unwrap_or_default(), json["lastName"].as_str().unwrap_or_default()));
                         }
                     }
+                    
                     _ => panic!("Unsupported type {}; Mention this to the package maintainer", value)
                 }
             },
             None => {
-                match json["access_token"].as_str() {
-                    Some(val) => {base.data = Box::new(val.to_string())}
-                    None => {panic!("Not supported or illegal")}
+                match json["access_token"].as_str().is_some() {
+                    true => {base.data = Box::new(String::from((SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() + json["expires_in"].as_u64().unwrap()).to_string().to_owned() + ";" + json["access_token"].as_str().unwrap()));}
+                    false => {panic!("Not supported or illegal")}
                 }
             }
         }
