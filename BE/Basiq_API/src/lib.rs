@@ -1,33 +1,41 @@
-#[allow(non_snake_case)]
-pub mod Core {
-    pub mod Authentication {
-        pub mod gen_auth;
-    }
-    pub mod Users {
-        pub mod create_user;
-        pub mod retrieve_user;
-        pub mod update_user;
-        pub mod delete_user;
-    }
-    pub mod Consents {
-        pub mod retrieve_consents;
-        pub mod delete_consent;
-    }
-    pub mod AuthLinks {
-        pub mod create_auth_link;
-        pub mod delete_auth_link;
-        pub mod retrieve_auth_link;
-    }
-    pub mod Jobs {
-        pub mod retrieve_job;
-        pub mod get_user_jobs;
-        //pub mod create_mfa_response;
-    }
+use std::time::{SystemTime, UNIX_EPOCH};
+
+pub mod requestHandler;
+
+pub enum RequestType {
+    //KeyType
+    Token(KeyType),
+    //ID/email, mobile, fname, mname, lname
+    Users(Vec<String>),
+    //ID
+    Consent(String),
+    //ID/userID
+    AuthLink(String),
+    //ID/userID
+    Jobs(String)
 }
 
-#[allow(non_snake_case)]
-pub mod Data {
-    pub mod Accounts {
-        pub mod get_user_accounts;
+#[allow(non_camel_case_types)]
+pub enum KeyType {
+    SERVER_ACCESS,
+    CLIENT_ACCESS
+}
+
+#[derive(Clone)]
+pub struct Token {
+    pub token: String,
+    expiry: u64
+}
+
+impl Token {
+    pub fn has_expired(&self) -> bool {
+        return self.expiry < SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+    }
+
+    pub fn new(data: Vec<Box<(String, String)>>) -> Self {
+        Token {
+            token: data[1].1.to_string(),
+            expiry: data[0].1.parse::<u64>().unwrap()
+        }
     }
 }
