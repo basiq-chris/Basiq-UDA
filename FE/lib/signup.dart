@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class SignupPage extends StatelessWidget {
   const SignupPage({super.key});
@@ -19,6 +20,7 @@ class SignupState extends StatefulWidget {
 }
 
 class SignupForm extends State<SignupState> {
+  var response;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -105,7 +107,10 @@ class SignupForm extends State<SignupState> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ElevatedButton(onPressed: null, style: ElevatedButton.styleFrom(
+                      ElevatedButton(onPressed: () async => {
+                        response = await http.Request("POST", Uri.parse("http://127.0.0.1:8642/createuser")).send(),
+                        debugPrint(response.toString())
+                      }, style: ElevatedButton.styleFrom(
                         foregroundColor: const Color(0xFF000000),
                         backgroundColor: const Color(0xFFA5FFFF),
                         minimumSize: const Size(355, 50)
@@ -146,3 +151,4 @@ String? validateMobile(String? value) {
       ? "Invalid Mobile"
       : null;
 }
+
