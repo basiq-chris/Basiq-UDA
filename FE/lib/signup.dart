@@ -1,5 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:localstorage/localstorage.dart';
 
 class SignupPage extends StatelessWidget {
   const SignupPage({super.key});
@@ -21,7 +25,9 @@ class SignupState extends StatefulWidget {
 
 class SignupForm extends State<SignupState> {
   final _formKey = GlobalKey<FormState>();
-  var response;
+  late LocalStorage lclStg;
+  late var user_response_json;
+  late http.Response user_response, auth_link_response;
   var state = {
     "email": "",
     "mobile": "",
@@ -124,9 +130,11 @@ class SignupForm extends State<SignupState> {
                       ElevatedButton(onPressed: () async => {
                         if (_formKey.currentState!.validate()) {
                           _formKey.currentState!.save(),
-                          response = await http.post(Uri.parse("http://127.0.0.1:8642/createuser"), body: state),
+                          user_response = (await http.post(Uri.parse("http://127.0.0.1:8642/createuser"), body: state)),
                           //TODO: Send entire response to logger when implemented
-                          debugPrint(response.toString())
+                          debugPrint(String.fromCharCodes(user_response.bodyBytes)),
+                          user_response_json = json.decode(user_response.body),
+                          //lclStg = LocalStorage(user_response_json["response_data"].toString())
                         }
                       }, style: ElevatedButton.styleFrom(
                         foregroundColor: const Color(0xFF000000),
