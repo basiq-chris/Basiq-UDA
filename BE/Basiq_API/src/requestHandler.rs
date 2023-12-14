@@ -119,16 +119,7 @@ pub async fn send_request(client: reqwest::Client, request_type: BSAPI::RequestT
                         .body(f_json.to_string());
 
 
-                        let data:Vec<Box<(String, String)>>;
-                        {
-                            let formatted = Value::from_str(unf_json.as_str()).unwrap_or_else(|x| panic!("Error: {}", x)).as_object().unwrap().clone();
-                            let mut arr: Vec<Box<(String, String)>> = Vec::new();
-                            for x in formatted {
-                                arr.push(Box::new((x.0, x.1.to_string())));
-                            }
-                            data = arr;
-                        };
-                        let reql = RequestLog::new(&req, data);
+                        let reql = RequestLog::new(&req, vec![Box::new(("data".to_string(), unf_json.replace('"', "'")))]);
                         let resp = req.send().await;
                         let resl = ResponseLog::new(resp.unwrap());
                        return Log {
