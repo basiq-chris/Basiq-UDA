@@ -3,10 +3,17 @@ use std::{io::Read, str::FromStr};
 use SXL::{RequestLog, ResponseLog, Log};
 use serde_json::Value;
 use reqwest::{self, Method, Request, header::{ACCEPT, CONTENT_TYPE, AUTHORIZATION}, blocking::RequestBuilder};
-use crate as BSAPI;
+use crate::{self as BSAPI, Token};
 
-pub async fn send_request(client: reqwest::Client, request_type: BSAPI::RequestType, method: reqwest::Method, token: Option<String>, data: Option<String>) -> SXL::Log {
+pub async fn send_request(client: reqwest::Client, request_type: BSAPI::RequestType, method: reqwest::Method, pre_token: Option<Token>, data: Option<String>) -> SXL::Log {
     let urlbase = "https://au-api.basiq.io";
+    let token: Option<String>;
+    match pre_token {
+        Some(val) => {
+            token = Some(val.token)
+        }
+        None => token = None
+    }
     match request_type {
         BSAPI::RequestType::Token(typ) => {
             match method {
@@ -92,26 +99,29 @@ pub async fn send_request(client: reqwest::Client, request_type: BSAPI::RequestT
                         }
                     }
                     else {
-                        let unf_json = format!(r#"
+                        let mut unf_json = format!(r#"
                         {{
-                            "email": {},
-                            "mobile": {},
-                            "firstName": {},
-                            "middleName": {},
-                            "lastName": {}
+                            "email": "{}",
+                            "mobile": "{}",
+                            "firstName": "{}",
+                            "middleName": "{}",
+                            "lastName": "{}"
                         }}
                         "#, val[0].as_str(), val[1].as_str(), val[2].as_str(), val[3], val[4]);
+                        unf_json = unf_json.replace(' ', "").replace('\n', "");
+                        println!("DEBUG: User JSON: {}", unf_json.clone());
+                        let f_json: Value = serde_json::from_str(&unf_json).unwrap();
 
-                        let req = client.post(urlbase.to_owned() + "/users/" + val[0].as_str())
+                        let req = client.post(urlbase.to_owned() + "/users")
                         .bearer_auth(token.unwrap())
                         .header(ACCEPT, "application/json")
                         .header(CONTENT_TYPE, "application/json")
-                        .json(serde_json::from_str::<&str>(unf_json.clone().as_str()).unwrap());
+                        .body(f_json.to_string());
 
 
                         let data:Vec<Box<(String, String)>>;
                         {
-                            let formatted = Value::from_str(unf_json.as_str()).unwrap().as_object().unwrap().clone();
+                            let formatted = Value::from_str(unf_json.as_str()).unwrap_or_else(|x| panic!("Error: {}", x)).as_object().unwrap().clone();
                             let mut arr: Vec<Box<(String, String)>> = Vec::new();
                             for x in formatted {
                                 arr.push(Box::new((x.0, x.1.to_string())));
