@@ -20,7 +20,15 @@ class SignupState extends StatefulWidget {
 }
 
 class SignupForm extends State<SignupState> {
+  final _formKey = GlobalKey<FormState>();
   var response;
+  var state = {
+    "email": "",
+    "mobile": "",
+    "firstName": "",
+    "middleName": "",
+    "lastName": ""
+  };
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -28,6 +36,7 @@ class SignupForm extends State<SignupState> {
       home: Scaffold(
         body: Center(
           child: Form(
+            key: _formKey,
             autovalidateMode: AutovalidateMode.always,
             child: Column(
               children: [
@@ -40,6 +49,7 @@ class SignupForm extends State<SignupState> {
                   child: SizedBox(
                     width: 350,
                     child: TextFormField(
+                      onSaved: (String? val) {state["email"] = val ?? "";},
                       obscureText: false,
                       validator: validateEmail,
                       decoration: const InputDecoration(
@@ -54,6 +64,7 @@ class SignupForm extends State<SignupState> {
                   child: SizedBox(
                     width: 350,
                     child: TextFormField(
+                      onSaved: (String? val) {state["mobile"] = val ?? "";},
                       validator: validateMobile,
                       obscureText: false,
                       decoration: const InputDecoration(
@@ -63,39 +74,42 @@ class SignupForm extends State<SignupState> {
                     ),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
                   child: SizedBox(
                     width: 350,
-                    child: TextField(
+                    child: TextFormField(
+                      onSaved: (String? val) {state["firstName"] = val ?? "";},
                       obscureText: false,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           labelText: "First Name"
                       ),
                     ),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
                   child: SizedBox(
                     width: 350,
-                    child: TextField(
+                    child: TextFormField(
+                      onSaved: (String? val) {state["middleName"] = val ?? "";},
                       obscureText: false,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           labelText: "Middle Name"
                       ),
                     ),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
                   child: SizedBox(
                     width: 350,
-                    child: TextField(
+                    child: TextFormField(
+                        onSaved: (String? val) {state["lastName"] = val ?? "";},
                       obscureText: false,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           labelText: "Surname"
                       ),
@@ -108,8 +122,12 @@ class SignupForm extends State<SignupState> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton(onPressed: () async => {
-                        response = await http.Request("POST", Uri.parse("http://127.0.0.1:8642/createuser")).send(),
-                        debugPrint(response.toString())
+                        if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save(),
+                          response = await http.post(Uri.parse("http://127.0.0.1:8642/createuser"), body: state),
+                          //TODO: Send entire response to logger when implemented
+                          debugPrint(response.toString())
+                        }
                       }, style: ElevatedButton.styleFrom(
                         foregroundColor: const Color(0xFF000000),
                         backgroundColor: const Color(0xFFA5FFFF),
@@ -144,7 +162,7 @@ String? validateEmail(String? value) {
 }
 
 String? validateMobile(String? value) {
-  const pattern = r"^(\+\d{1,3}[ ]?)?\d{10}$";
+  const pattern = r"\++\d{2,3}\d{9,10}";
   final regex = RegExp(pattern);
 
   return value!.isNotEmpty && !regex.hasMatch(value)
