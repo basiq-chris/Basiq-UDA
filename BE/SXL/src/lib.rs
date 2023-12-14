@@ -31,6 +31,7 @@ impl ResponseLog {
             data: Vec::new()
         };
         let json: Value = res.json().await.unwrap();
+        println!("DEBUG: JSON Output: {:#?}", json.clone().to_string());
         let request_type = json["type"].as_str();
         match request_type {
             Some(value) => {

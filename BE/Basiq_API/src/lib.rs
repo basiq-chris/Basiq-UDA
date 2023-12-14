@@ -21,7 +21,7 @@ pub enum KeyType {
     CLIENT_ACCESS
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Token {
     pub token: String,
     expiry: u64
