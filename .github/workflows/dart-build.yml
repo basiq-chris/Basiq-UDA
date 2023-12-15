@@ -1,0 +1,16 @@
+name: Dart-build
+on:
+  pull_request:
+    branches: [ "Staging/Testing", "Prod" ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+
+      - name: Install dependencies
+        run: flutter pub get ./FE/
+        
+      - name: Analyze project source
+        run: cd FE/ && flutter build web --target./lib/landingpage.dart
