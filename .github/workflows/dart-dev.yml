@@ -17,13 +17,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
+      - uses: subosito/flutter-action@v2
         with: 
-          sdk: beta
+          channel: beta
 
       - name: Install dependencies
-        run: dart pub get -C ./FE/
+        run: flutter pub get -C ./FE/
 
       - name: Analyze project source
-        run: dart analyze ./FE/
+        run: flutter analyze ./FE/
+
+      - name: Build project
+        run: cd FE/ && flutter build web --target=./lib/landingpage.dart
 
