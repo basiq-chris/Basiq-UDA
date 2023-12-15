@@ -109,7 +109,7 @@ pub async fn send_request(client: reqwest::Client, request_type: BSAPI::RequestT
                         }}
                         "#, val[0].as_str(), val[1].as_str(), val[2].as_str(), val[3], val[4]);
                         unf_json = unf_json.replace(' ', "").replace('\n', "");
-                        println!("DEBUG: User JSON: {}", unf_json.clone());
+                        println!("DEBUG: User JSON: {:?}", Value::from_str(unf_json.clone().as_str()));
                         let f_json: Value = serde_json::from_str(&unf_json).unwrap();
 
                         let req = client.post(urlbase.to_owned() + "/users")
@@ -132,7 +132,39 @@ pub async fn send_request(client: reqwest::Client, request_type: BSAPI::RequestT
             }
         },
         BSAPI::RequestType::Consent(_) => todo!(),
-        BSAPI::RequestType::AuthLink(_) => todo!(),
-        BSAPI::RequestType::Jobs(_) => todo!(),
+        BSAPI::RequestType::AuthLink(val) => {
+            match method {
+                reqwest::Method::POST => {
+                    let req = client.post(urlbase.to_owned() + "/users/" + val.as_str() + "/auth_link")
+                    .bearer_auth(token.unwrap())
+                    .header(ACCEPT, "application/json")
+                    .header(CONTENT_TYPE, "application/json");
+                    
+                    let reql = RequestLog::new(&req, vec![Box::new(("userID".to_string(),val))]);
+                    let resp = req.send().await.unwrap();
+                    let respl = ResponseLog::new(resp).await;
+
+                    return Log {
+                     req: reql,
+                     res: respl   
+                    };
+                }
+                _ => panic!("Operation not supported at this current time")
+            }
+        },
+        BSAPI::RequestType::Jobs(val) => {
+            match method {
+                Method::GET => {
+                    let req = client.get(urlbase.to_owned() + "/jobs/" + val.as_str())
+                    .bearer_auth(token.unwrap())
+                    .header(ACCEPT, "application/json");
+                    
+                    let reql = RequestLog::new(&req, vec![Box::new(("jobid".to_string(), val))]);
+                    let resl = ResponseLog::new(req.send().await.unwrap()).await;
+                    return Log {req: reql, res: resl};
+                },
+                _ => panic!("Operation not supported at this current time")                
+            }
+        },
     }
 }

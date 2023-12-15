@@ -31,14 +31,14 @@ impl ResponseLog {
             data: Vec::new()
         };
         let json: Value = res.json().await.unwrap();
-        println!("DEBUG: JSON Output: {:#?}", json.clone().to_string());
+        println!("DEBUG: JSON Output: {:#?}", json.clone());
         let request_type = json["type"].as_str();
         match request_type {
             Some(value) => {
+                let mut data: Vec<Box<(String, String)>> = Vec::new();
                 match value {
                     "user" => {
                         if json["firstName"].as_str().is_none() {
-                            let mut data: Vec<Box<(String, String)>> = Vec::new();
                             data.push(Box::new(("userID".to_string(), json["id"].as_str().unwrap().to_string())));
                             base.data = data;
                         } else {
@@ -47,7 +47,29 @@ impl ResponseLog {
                             }
                         }
                     }
-                    
+                    "auth_link" => {
+                        data.push(Box::new(("userID".to_string(), json["userId"].as_str().unwrap().to_string())));
+                        data.push(Box::new(("mobile".to_string(), json["mobile"].as_str().unwrap_or_else(|| "no-mobile").to_string())));
+                        data.push(Box::new(("authLink".to_string(), json["links"]["public"].as_str().unwrap().to_string())));
+                        base.data = data;
+                    }
+                    "job" => {
+                        data.push(Box::new(("jobID".to_string(), json["id"].as_str().unwrap().to_string())));
+                        println!("DEBUG: Job creation date: {}", json["created"].as_str().unwrap());
+                        let mut stepinfo: Vec<Box<(String, String)>> = Vec::new();
+                        for step in json["steps"].as_array().unwrap() {
+                            stepinfo.push(Box::new((step["title"].as_str().unwrap().to_string(), step["status"].as_str().unwrap().to_string())));
+                        }
+                        data.append(&mut stepinfo);
+                        let mut extradata: Vec<Box<(String, String)>> = Vec::new();
+                        let publink = json["links"]["source"].as_str().unwrap().to_string();
+                        let publink: Vec<String> = publink.split("/").map(|x| x.to_string()).collect();
+                        extradata.push(Box::new(("userID".to_string(), publink[4].clone())));
+                        extradata.push(Box::new(("connectionID".to_string(), publink[6].clone())));
+                        drop(publink);
+                        data.append(&mut extradata);
+                        base.data = data; 
+                    }
                     _ => panic!("Unsupported type {}; Mention this to the package maintainer", value)
                 }
             },
