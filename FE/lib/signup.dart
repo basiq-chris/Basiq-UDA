@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:core';
+import 'dart:html' as html;
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:localstorage/localstorage.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class SignupPage extends StatelessWidget {
   const SignupPage({super.key});
@@ -26,7 +29,7 @@ class SignupState extends StatefulWidget {
 class SignupForm extends State<SignupState> {
   final _formKey = GlobalKey<FormState>();
   late LocalStorage lclStg;
-  late var user_response_json;
+  late var user_response_json, auth_link_response_json;
   late http.Response user_response, auth_link_response;
   var state = {
     "email": "",
@@ -55,7 +58,7 @@ class SignupForm extends State<SignupState> {
                   child: SizedBox(
                     width: 350,
                     child: TextFormField(
-                      onSaved: (String? val) {state["email"] = val ?? "";},
+                      onSaved: (String? val) {state["email"] = val ??= "";},
                       obscureText: false,
                       validator: validateEmail,
                       decoration: const InputDecoration(
@@ -70,7 +73,7 @@ class SignupForm extends State<SignupState> {
                   child: SizedBox(
                     width: 350,
                     child: TextFormField(
-                      onSaved: (String? val) {state["mobile"] = val ?? "";},
+                      onSaved: (String? val) {state["mobile"] = val ??= "";},
                       validator: validateMobile,
                       obscureText: false,
                       decoration: const InputDecoration(
@@ -85,7 +88,7 @@ class SignupForm extends State<SignupState> {
                   child: SizedBox(
                     width: 350,
                     child: TextFormField(
-                      onSaved: (String? val) {state["firstName"] = val ?? "";},
+                      onSaved: (String? val) {state["firstName"] = val ??= "";},
                       obscureText: false,
                       decoration: const InputDecoration(
                           border: OutlineInputBorder(),
@@ -99,7 +102,7 @@ class SignupForm extends State<SignupState> {
                   child: SizedBox(
                     width: 350,
                     child: TextFormField(
-                      onSaved: (String? val) {state["middleName"] = val ?? "";},
+                      onSaved: (String? val) {state["middleName"] = val ??= "";},
                       obscureText: false,
                       decoration: const InputDecoration(
                           border: OutlineInputBorder(),
@@ -113,7 +116,7 @@ class SignupForm extends State<SignupState> {
                   child: SizedBox(
                     width: 350,
                     child: TextFormField(
-                        onSaved: (String? val) {state["lastName"] = val ?? "";},
+                        onSaved: (String? val) {state["lastName"] = val ??= "";},
                       obscureText: false,
                       decoration: const InputDecoration(
                           border: OutlineInputBorder(),
@@ -132,9 +135,18 @@ class SignupForm extends State<SignupState> {
                           _formKey.currentState!.save(),
                           user_response = (await http.post(Uri.parse("http://127.0.0.1:8642/createuser"), body: state)),
                           //TODO: Send entire response to logger when implemented
-                          debugPrint(String.fromCharCodes(user_response.bodyBytes)),
+                          //debugPrint(String.fromCharCodes(user_response.bodyBytes)),
                           user_response_json = json.decode(user_response.body),
-                          //lclStg = LocalStorage(user_response_json["response_data"].toString())
+                          lclStg = LocalStorage(user_response_json["response_data"]["payload"]["id"].toString()),
+                          lclStg.setItem("userPayload", user_response_json["response_data"]["payload"].toString()),
+                          //debugPrint(user_response_json["response_data"]["payload"]["id"]),
+                          auth_link_response = await http.post(Uri.parse("http://127.0.0.1:8642/createauthlink"), body: {"userID": user_response_json["response_data"]["payload"]["id"]}),
+                          auth_link_response_json = jsonDecode(auth_link_response.body),
+                          if (await canLaunchUrlString(auth_link_response_json["response_data"]["payload"]["authLink"].toString())) {
+                            html.window.open(auth_link_response_json["response_data"]["payload"]["authLink"].toString(), "_self" )
+                          } else {
+                            throw Exception("url cannot be linked to")
+                          }
                         }
                       }, style: ElevatedButton.styleFrom(
                         foregroundColor: const Color(0xFF000000),
@@ -155,6 +167,9 @@ class SignupForm extends State<SignupState> {
 }
 
 String? validateEmail(String? value) {
+  if (value == null || value == "") {
+    return "Email must be provided";
+  }
   const pattern = r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'"
       r'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-'
       r'\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*'
@@ -164,16 +179,19 @@ String? validateEmail(String? value) {
       r'x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])';
   final regex = RegExp(pattern);
 
-  return value!.isNotEmpty && !regex.hasMatch(value)
+  return value.isNotEmpty && !regex.hasMatch(value)
       ? 'Enter a valid email address'
       : null;
 }
 
 String? validateMobile(String? value) {
+  if (value == null || value == "") {
+    return "Mobile number must be provided";
+  }
   const pattern = r"\++\d{2,3}\d{9,10}";
   final regex = RegExp(pattern);
 
-  return value!.isNotEmpty && !regex.hasMatch(value)
+  return value.isNotEmpty && !regex.hasMatch(value)
       ? "Invalid Mobile"
       : null;
 }

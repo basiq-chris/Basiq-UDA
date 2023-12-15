@@ -1,4 +1,8 @@
 
+import 'dart:js';
+
+import 'package:fe/callback.dart';
+import 'package:fe/homepage.dart';
 import 'package:fe/signup.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -19,7 +23,12 @@ final _router = GoRouter(routes: [
   GoRoute(path: '/home',
       builder: (context, state) => const LandingPageState()),
   GoRoute(path: '/signup',
-      builder: (context, state) => const SignupPage())
+      builder: (context, state) => const SignupPage()),
+  GoRoute(path: "/dashboard",
+      builder: (context, state) {Job job = state.extra as Job;
+                                    return HomePage(jobID: job);}),
+  GoRoute(path: "/callback",
+      builder: (context, state) => Callback())
 ]);
 
 class RouterWidget extends StatelessWidget {
@@ -109,11 +118,11 @@ class LandingPage extends State<LandingPageState> {
                                 foregroundColor: const Color(0xFF000000),
                               ), child: const Text("Sign up")),
                         ),
-                        ElevatedButton(onPressed: null, child: const Text("Sign in"),
+                        ElevatedButton(onPressed: null,
                           style: ElevatedButton.styleFrom(
                               foregroundColor: const Color(0xFF000000),
                               backgroundColor: Colors.lightGreen
-                          ),)
+                          ), child: const Text("Sign in"),)
                       ],
                     ),
                   )
