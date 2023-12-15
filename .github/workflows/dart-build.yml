@@ -1,7 +1,7 @@
 name: Dart-build
 on:
   pull_request:
-    branches: [ "Staging/Testing", "Dev" ]
+    branches: [ "Staging/Testing", "Prod" ]
 jobs:
   build:
     runs-on: ubuntu-latest
