@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:core';
 import 'dart:html' as html;
 
@@ -29,8 +28,8 @@ class SignupState extends StatefulWidget {
 class SignupForm extends State<SignupState> {
   final _formKey = GlobalKey<FormState>();
   late LocalStorage lclStg;
-  late var user_response_json, auth_link_response_json;
-  late http.Response user_response, auth_link_response;
+  late dynamic userResponseJson, authLinkResponseJson;
+  late http.Response userResponse, authLinkResponse;
   var state = {
     "email": "",
     "mobile": "",
@@ -133,17 +132,17 @@ class SignupForm extends State<SignupState> {
                       ElevatedButton(onPressed: () async => {
                         if (_formKey.currentState!.validate()) {
                           _formKey.currentState!.save(),
-                          user_response = (await http.post(Uri.parse("http://127.0.0.1:8642/createuser"), body: state)),
+                          userResponse = (await http.post(Uri.parse("http://127.0.0.1:8642/createuser"), body: state)),
                           //TODO: Send entire response to logger when implemented
                           //debugPrint(String.fromCharCodes(user_response.bodyBytes)),
-                          user_response_json = json.decode(user_response.body),
-                          lclStg = LocalStorage(user_response_json["response_data"]["payload"]["id"].toString()),
-                          lclStg.setItem("userPayload", user_response_json["response_data"]["payload"].toString()),
+                          userResponseJson = json.decode(userResponse.body),
+                          lclStg = LocalStorage(userResponseJson["response_data"]["payload"]["id"].toString()),
+                          lclStg.setItem("userPayload", userResponseJson["response_data"]["payload"].toString()),
                           //debugPrint(user_response_json["response_data"]["payload"]["id"]),
-                          auth_link_response = await http.post(Uri.parse("http://127.0.0.1:8642/createauthlink"), body: {"userID": user_response_json["response_data"]["payload"]["id"]}),
-                          auth_link_response_json = jsonDecode(auth_link_response.body),
-                          if (await canLaunchUrlString(auth_link_response_json["response_data"]["payload"]["authLink"].toString())) {
-                            html.window.open(auth_link_response_json["response_data"]["payload"]["authLink"].toString(), "_self" )
+                          authLinkResponse = await http.post(Uri.parse("http://127.0.0.1:8642/createauthlink"), body: {"userID": userResponseJson["response_data"]["payload"]["id"]}),
+                          authLinkResponseJson = jsonDecode(authLinkResponse.body),
+                          if (await canLaunchUrlString(authLinkResponseJson["response_data"]["payload"]["authLink"].toString())) {
+                            html.window.open(authLinkResponseJson["response_data"]["payload"]["authLink"].toString(), "_self" )
                           } else {
                             throw Exception("url cannot be linked to")
                           }

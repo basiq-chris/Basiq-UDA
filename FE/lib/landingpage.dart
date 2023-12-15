@@ -1,6 +1,3 @@
-
-import 'dart:js';
-
 import 'package:fe/callback.dart';
 import 'package:fe/homepage.dart';
 import 'package:fe/signup.dart';
@@ -28,7 +25,7 @@ final _router = GoRouter(routes: [
       builder: (context, state) {Job job = state.extra as Job;
                                     return HomePage(jobID: job);}),
   GoRoute(path: "/callback",
-      builder: (context, state) => Callback())
+      builder: (context, state) => const Callback())
 ]);
 
 class RouterWidget extends StatelessWidget {
