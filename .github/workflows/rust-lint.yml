@@ -1,10 +1,8 @@
 name: Rust-Dev
 
 on:
-  push:
-    branches: [ "Dev" ]
   pull_request:
-    branches: [ "Dev" ]
+    branches: [ "Dev", "Staging/Testing", "Prod" ]
 
 env:
   CARGO_TERM_COLOR: always
