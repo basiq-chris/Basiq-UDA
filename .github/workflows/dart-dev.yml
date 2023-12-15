@@ -3,7 +3,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Dart
+name: Dart-dev
 
 on:
   push:
@@ -17,7 +17,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@beta
+      - uses: dart-lang/setup-dart@v1
+        with: 
+          sdk: beta
 
       - name: Install dependencies
         run: dart pub get -C ./FE/
