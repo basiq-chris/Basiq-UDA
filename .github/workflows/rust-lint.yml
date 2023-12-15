@@ -1,4 +1,4 @@
-name: Rust-Dev
+name: Rust-lint
 
 on:
   pull_request:
