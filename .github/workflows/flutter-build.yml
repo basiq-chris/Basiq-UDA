@@ -1,4 +1,4 @@
-name: Dart-build
+name: Flutter Build
 on:
   pull_request:
     branches: [ "Staging/Testing", "Prod" ]
