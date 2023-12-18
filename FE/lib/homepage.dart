@@ -23,9 +23,9 @@ class HomePageState extends State<HomePage> {
     debugPrint(jobID);
     late dynamic jobJSON;
     late LocalStorage localStore;
-    http.get(Uri.parse("http://127.0.0.1:8642/$jobID")).then((resp) => {
+    http.get(Uri.parse("http://127.0.0.1:8642/getjob/$jobID")).then((resp) => {
       jobJSON = jsonDecode(resp.body),
-      localStore = LocalStorage(jobJSON["response_data"]["payload"]["userID"].toString()),
+      localStore = LocalStorage("LocalStorage"),
       localStore.setItem("connectionID", jobJSON["response_data"]["payload"]["connectionID"].toString())
     });
 

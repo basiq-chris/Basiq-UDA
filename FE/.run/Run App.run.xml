@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run App" type="FlutterRunConfigurationType" factoryName="Flutter">
+    <option name="additionalArgs" value="--web-port=8080" />
+    <option name="filePath" value="$PROJECT_DIR$/lib/landingpage.dart" />
+    <method v="2" />
+  </configuration>
+</component>
