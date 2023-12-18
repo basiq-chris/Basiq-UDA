@@ -2,7 +2,7 @@
 use BSAPI::{requestHandler::send_request, Token};
 use actix_web::{Responder, HttpServer, App, HttpResponseBuilder, web};
 use qstring::QString;
-use reqwest::{StatusCode, ResponseBuilderExt, RequestBuilder, header::ACCEPT, Client, Method};
+use reqwest::{StatusCode, Client, Method};
 use Basiq_API as BSAPI;
 use std::sync::Mutex;
 
@@ -35,11 +35,19 @@ async fn get_client_token(request_body: web::Path<String>, server_token: web::Da
     println!("INFO: GET request made to /token");
     let user_id = request_body.into_inner();
     println!("DEBUG: userID used: {}", user_id);
+    println!("DEBUG: Checking token health");
+    let mut token = server_token.token.lock().unwrap();
+    if token.has_expired() {
+        println!("INFO: Token Expired");
+        *token = get_server_token().await;
+    }
+    let tkn = token.clone();
+    drop(token);
     HttpResponseBuilder::new(StatusCode::CREATED)
     .append_header(("Access-Control-Allow-Origin", "*"))
     .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
     .append_header(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
-    .body(BSAPI::requestHandler::send_request(reqwest::Client::new(), BSAPI::RequestType::Token(BSAPI::KeyType::CLIENT_ACCESS), reqwest::Method::POST, None, None).await.stringify())
+    .body(BSAPI::requestHandler::send_request(reqwest::Client::new(), BSAPI::RequestType::Token(BSAPI::KeyType::CLIENT_ACCESS), reqwest::Method::POST, Some(tkn), Some(user_id)).await.stringify())
 }
 
 #[actix_web::post("/createuser")]
