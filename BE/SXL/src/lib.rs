@@ -31,7 +31,7 @@ impl ResponseLog {
             data: Vec::new()
         };
         let json: Value = res.json().await.unwrap();
-        println!("DEBUG: JSON Output: {:#?}", json.clone());
+        Logger::print_debug(json.clone());
         let request_type = json["type"].as_str();
         match request_type {
             Some(value) => {
@@ -55,7 +55,7 @@ impl ResponseLog {
                     }
                     "job" => {
                         data.push(Box::new(("jobID".to_string(), json["id"].as_str().unwrap().to_string())));
-                        println!("DEBUG: Job creation date: {}", json["created"].as_str().unwrap());
+                        Logger::print_debug(json["created"].as_str().unwrap());
                         let mut stepinfo: Vec<Box<(String, String)>> = Vec::new();
                         for step in json["steps"].as_array().unwrap() {
                             stepinfo.push(Box::new((step["title"].as_str().unwrap().to_string(), step["status"].as_str().unwrap().to_string())));
