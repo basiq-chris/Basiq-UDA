@@ -30,9 +30,11 @@ struct ServerToken {
     token: Mutex<BSAPI::Token>
 }
 
-#[actix_web::get("/token")]
-async fn get_client_token(request_body: String, server_token: web::Data<ServerToken>) -> impl Responder {
+#[actix_web::get("/token/{user_id}")]
+async fn get_client_token(request_body: web::Path<String>, server_token: web::Data<ServerToken>) -> impl Responder {
     println!("INFO: GET request made to /token");
+    let user_id = request_body.into_inner();
+    println!("DEBUG: userID used: {}", user_id);
     HttpResponseBuilder::new(StatusCode::CREATED)
     .append_header(("Access-Control-Allow-Origin", "*"))
     .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
@@ -47,6 +49,7 @@ async fn create_user(response_body: String, server_token: actix_web::web::Data<S
     println!("DEBUG: Checking token health");
     let mut token = server_token.token.lock().unwrap();
     if token.has_expired() {
+        println!("INFO: Token Expired");
         *token = get_server_token().await;
     }
     let tkn = token.clone();
@@ -66,6 +69,7 @@ async fn create_auth_link(response_body: String, server_token: actix_web::web::D
     println!("DEBUG: Checking token health");
     let mut token = server_token.token.lock().unwrap();
     if token.has_expired() {
+        println!("INFO: Token Expired");
         *token = get_server_token().await;
     }
     let tkn = token.clone();
@@ -85,6 +89,7 @@ async fn get_job(url_params: web::Path<String>, server_token: actix_web::web::Da
     println!("DEBUG: Checking token health");
     let mut token = server_token.token.lock().unwrap();
     if token.has_expired() {
+        println!("INFO: Token Expired");
         *token = get_server_token().await;
     }
     let tkn = token.clone();
