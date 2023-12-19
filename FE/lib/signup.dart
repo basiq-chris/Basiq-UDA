@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:core';
-import 'dart:html' as html;
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:localstorage/localstorage.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class SignupPage extends StatelessWidget {
@@ -143,7 +143,7 @@ class SignupForm extends State<SignupState> {
                           authLinkResponse = await http.post(Uri.parse("http://127.0.0.1:8642/createauthlink"), body: {"userID": userResponseJson["response_data"]["payload"]["id"]}),
                           authLinkResponseJson = jsonDecode(authLinkResponse.body),
                           if (await canLaunchUrlString(authLinkResponseJson["response_data"]["payload"]["authLink"].toString())) {
-                            html.window.open(authLinkResponseJson["response_data"]["payload"]["authLink"].toString(), "_self" )
+                            launchUrl(Uri.parse(authLinkResponseJson["response_data"]["payload"]["authLink"].toString()), webOnlyWindowName: "_self")
                           } else {
                             throw Exception("url cannot be linked to")
                           }
