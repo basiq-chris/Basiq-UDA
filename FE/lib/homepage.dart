@@ -1,32 +1,24 @@
 
-import 'dart:convert';
 
-import 'package:fe/callback.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:localstorage/localstorage.dart';
 
 class HomePage extends StatefulWidget {
-  final Job jobID;
-  const HomePage({super.key, required this.jobID});
+  const HomePage({super.key});
 
   @override
-  State<StatefulWidget> createState() => HomePageState(jobID.jobID);
+  State<StatefulWidget> createState() => HomePageState();
 
 }
 
 class HomePageState extends State<HomePage> {
-  String jobID;
-  HomePageState(this.jobID);
+
   @override
   Widget build(BuildContext context) {
-    debugPrint(jobID);
-    late dynamic jobJSON;
-    late LocalStorage localStore;
-    http.get(Uri.parse("http://127.0.0.1:8642/$jobID")).then((resp) => {
-      jobJSON = jsonDecode(resp.body),
-      localStore = LocalStorage(jobJSON["response_data"]["payload"]["userID"].toString()),
-      localStore.setItem("connectionID", jobJSON["response_data"]["payload"]["connectionID"].toString())
+    String jobID;
+    LocalStorage localStorage = LocalStorage("LocalStorage.json");
+    localStorage.ready.then((_) => {
+      jobID = localStorage.getItem("jobID"),
     });
 
     return const MaterialApp(
