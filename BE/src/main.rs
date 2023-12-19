@@ -1,10 +1,11 @@
 
 use BSAPI::{requestHandler::send_request, Token};
-use actix_web::{Responder, HttpServer, App, HttpResponseBuilder, web};
+use actix_web::{Responder, HttpServer, App, HttpResponseBuilder, web::{self}};
 use qstring::QString;
 use reqwest::{StatusCode, Client, Method};
 use Basiq_API as BSAPI;
-use std::sync::Mutex;
+use serde_json::Value;
+use std::{sync::Mutex, str::FromStr};
 use Logger;
 
 #[actix_web::main]
@@ -20,6 +21,7 @@ async fn main() -> Result<(), std::io::Error> {
         .service(create_user)
         .service(create_auth_link)
         .service(get_job)
+        .service(job_poll)
         .app_data(token.clone())
     })
     .bind(("127.0.0.1", 8642))?
@@ -113,6 +115,57 @@ async fn get_job(url_params: web::Path<String>, server_token: actix_web::web::Da
 async fn get_server_token() -> Token {
     let req = send_request(reqwest::Client::new(), BSAPI::RequestType::Token(BSAPI::KeyType::SERVER_ACCESS), reqwest::Method::POST, None, None).await;
     Token::new(req.res.data)
+}
+
+#[actix_web::get("/job/{job_id}/poll")]
+async fn job_poll(job_query: web::Path<String>, server_token: actix_web::web::Data<ServerToken>) -> impl Responder {
+    let job_id = job_query.into_inner();
+    Logger::print_debug("Polling job, ".to_owned() + job_id.as_str());
+    Logger::print_debug("Checking token health".to_string());
+    let mut token = server_token.token.lock().unwrap();
+    if token.has_expired() {
+        Logger::print_info("Token expired");
+        *token = get_server_token().await;
+    }
+    let tkn = token.clone();
+    drop(token);
+    let poll_info = Value::from_str(reqwest::Client::new().get(&("https://au-api.basiq.io/jobs/".to_owned() + job_id.as_str()))
+    .bearer_auth(tkn.token).send().await.unwrap().text().await.unwrap().as_str()).unwrap();
+#[allow(non_snake_case)]
+let mut hasFailed = false;
+#[allow(non_snake_case)]
+    let mut isSuccessful = false;
+
+    if let Some(steps) = poll_info["steps"].as_array() {
+        for step in steps {
+            if step["status"].as_str().unwrap() == "success" {
+                isSuccessful = true;
+            } else if step["status"].as_str().unwrap() == "failed" {
+                hasFailed = true;
+            }
+        }
+    }
+    
+
+    if hasFailed {
+        return HttpResponseBuilder::new(StatusCode::FAILED_DEPENDENCY)
+            .append_header(("Access-Control-Allow-Origin", "*"))
+            .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
+            .append_header(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
+            .finish();
+    } else if isSuccessful {
+        return HttpResponseBuilder::new(StatusCode::OK)
+            .append_header(("Access-Control-Allow-Origin", "*"))
+            .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
+            .append_header(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
+            .finish();
+    } else {
+        return HttpResponseBuilder::new(StatusCode::PROCESSING)
+            .append_header(("Access-Control-Allow-Origin", "*"))
+            .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
+            .append_header(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
+            .finish();
+    }
 }
 
 /* pub async fn get_all_users(token: String) -> Vec<String> {
