@@ -21,7 +21,7 @@ pub async fn send_request(client: reqwest::Client, request_type: BSAPI::RequestT
                     let mut val: String = String::from("");
                     let mut reader = std::fs::File::open("./Basiq_API/APIKEY.env").unwrap();
                     let _ = reader.read_to_string(&mut val);
-                    println!("DEBUG: API KEY GOT: {}", val);
+                    Logger::print_debug(val.clone());
                     match typ {
                         BSAPI::KeyType::SERVER_ACCESS => {
                     let req = client.post(urlbase.to_owned() + "/token")
@@ -109,7 +109,7 @@ pub async fn send_request(client: reqwest::Client, request_type: BSAPI::RequestT
                         }}
                         "#, val[0].as_str(), val[1].as_str(), val[2].as_str(), val[3], val[4]);
                         unf_json = unf_json.replace(' ', "").replace('\n', "");
-                        println!("DEBUG: User JSON: {:?}", Value::from_str(unf_json.clone().as_str()));
+                        Logger::print_debug(Value::from_str(&unf_json).unwrap());
                         let f_json: Value = serde_json::from_str(&unf_json).unwrap();
 
                         let req = client.post(urlbase.to_owned() + "/users")

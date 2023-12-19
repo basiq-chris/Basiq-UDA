@@ -9,4 +9,4 @@ description = "The SallyAX Logger Implementation"
 [dependencies]
 reqwest = "0.11.22"
 serde_json = "1.0.108"
-
+Logger = {version = "0.1.0", path = "../ServersideLogger", package = "ServersideLogger"}
