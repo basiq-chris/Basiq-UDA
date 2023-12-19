@@ -22,8 +22,7 @@ final _router = GoRouter(routes: [
   GoRoute(path: '/signup',
       builder: (context, state) => const SignupPage()),
   GoRoute(path: "/dashboard",
-      builder: (context, state) {Job job = state.extra as Job;
-                                    return HomePage(jobID: job);}),
+      builder: (context, state) => const HomePage()),
   GoRoute(path: "/callback",
       builder: (context, state) => const Callback())
 ]);

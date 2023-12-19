@@ -136,7 +136,7 @@ class SignupForm extends State<SignupState> {
                           //TODO: Send entire response to logger when implemented
                           //debugPrint(String.fromCharCodes(user_response.bodyBytes)),
                           userResponseJson = json.decode(userResponse.body),
-                          lclStg = LocalStorage("LocalStorage"),
+                          lclStg = LocalStorage(userResponseJson["response_data"]["payload"]["id"].toString()),
                           lclStg.setItem("currentUser", userResponseJson["response_data"]["payload"]["id"].toString()),
                           lclStg.setItem("userPayload", userResponseJson["response_data"]["payload"].toString()),
                           //debugPrint(user_response_json["response_data"]["payload"]["id"]),
