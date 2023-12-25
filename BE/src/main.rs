@@ -1,4 +1,3 @@
-
 use BSAPI::{requestHandler::send_request, Token};
 use actix_web::{Responder, HttpServer, App, HttpResponseBuilder, web::{self}};
 use qstring::QString;
@@ -43,7 +42,7 @@ async fn main() -> Result<(), std::io::Error> {
     let token = actix_web::web::Data::new(ServerToken {
         token: Mutex::new(get_server_token().await)
     });
-    println!("DEBUG: Server created");
+    Logger::print_debug("Server created!");
     HttpServer::new(move || {
         App::new()
         .service(get_client_token)
