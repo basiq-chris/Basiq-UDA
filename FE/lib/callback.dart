@@ -17,7 +17,7 @@ class Callback extends StatelessWidget {
     late LocalStorage localStore;
     http.get(Uri.parse("http://127.0.0.1:8642/getjob/$jobID")).then((resp) => {
       jobJSON = jsonDecode(resp.body),
-      localStore = LocalStorage(jobJSON["response_data"]["payload"]["userID"].toString()),
+      localStore = LocalStorage("currentSession"),
       localStore.ready.then((_) => {
         localStore.setItem("jobID", jobID),
         localStore.setItem("connectionID", jobJSON["response_data"]["payload"]["connectionID"].toString())
