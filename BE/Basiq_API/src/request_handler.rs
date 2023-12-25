@@ -1,8 +1,9 @@
 use std::{io::Read, str::FromStr};
 
 use SXL::{RequestLog, ResponseLog, Log};
+use sxl as SXL;
 use serde_json::Value;
-use reqwest::{self, Method, Request, header::{ACCEPT, CONTENT_TYPE, AUTHORIZATION}, blocking::RequestBuilder};
+use reqwest::{self, Method, header::{ACCEPT, CONTENT_TYPE, AUTHORIZATION}};
 use crate::{self as BSAPI, Token};
 
 pub async fn send_request(client: reqwest::Client, request_type: BSAPI::RequestType, method: reqwest::Method, pre_token: Option<Token>, data: Option<String>) -> SXL::Log {

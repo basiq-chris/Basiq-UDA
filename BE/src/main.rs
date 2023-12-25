@@ -1,9 +1,8 @@
-
-use BSAPI::{requestHandler::send_request, Token};
+use BSAPI::{request_handler::send_request, Token};
 use actix_web::{Responder, HttpServer, App, HttpResponseBuilder, web::{self}};
 use qstring::QString;
 use reqwest::{StatusCode, Client, Method, header::ACCEPT};
-use Basiq_API as BSAPI;
+use basiq_api as BSAPI;
 use serde_json::Value;
 use std::{sync::Mutex, str::FromStr};
 use Logger;
@@ -22,8 +21,8 @@ async fn main() -> Result<(), std::io::Error> {
             let users: Value = client.get("https://au-api.basiq.io/users")
             .bearer_auth(token.clone())
             .header(ACCEPT, "application/json").send().await.unwrap().json().await.unwrap();
-            let users = users["data"].as_array().unwrap();
-            for user in users.iter() {
+            let userz = users["data"].as_array().unwrap();
+            for user in userz.iter() {
                 let consent: Value = client.get(format!("https://au-api.basiq.io/users/{}/consents", user["id"].as_str().unwrap()))
                 .bearer_auth(token.clone())
                 .header(ACCEPT, "application/json").send().await.unwrap().json().await.unwrap();
@@ -37,13 +36,15 @@ async fn main() -> Result<(), std::io::Error> {
                     Logger::print_info(format!("User {}, as been deleted", user["id"].as_str().unwrap()));
                 }
             }
+            drop(token);
+            drop(users);
         }
     });
 
     let token = actix_web::web::Data::new(ServerToken {
         token: Mutex::new(get_server_token().await)
     });
-    println!("DEBUG: Server created");
+    Logger::print_debug("Server created!");
     HttpServer::new(move || {
         App::new()
         .service(get_client_token)
@@ -78,7 +79,7 @@ async fn get_client_token(request_body: web::Path<String>, server_token: web::Da
     .append_header(("Access-Control-Allow-Origin", "*"))
     .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
     .append_header(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
-    .body(BSAPI::requestHandler::send_request(reqwest::Client::new(), BSAPI::RequestType::Token(BSAPI::KeyType::CLIENT_ACCESS), reqwest::Method::POST, Some(tkn), Some(user_id)).await.stringify())
+    .body(BSAPI::request_handler::send_request(reqwest::Client::new(), BSAPI::RequestType::Token(BSAPI::KeyType::CLIENT_ACCESS), reqwest::Method::POST, Some(tkn), Some(user_id)).await.stringify())
 }
 
 #[actix_web::post("/createuser")]
@@ -98,7 +99,7 @@ async fn create_user(response_body: String, server_token: actix_web::web::Data<S
     .append_header(("Access-Control-Allow-Origin", "*"))
     .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
     .append_header(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
-    .body(BSAPI::requestHandler::send_request(Client::new(), BSAPI::RequestType::Users(vec![query.get("email").unwrap_or_else(|| "").to_string(), query.get("mobile").unwrap_or_else(|| "").to_string(), query.get("firstName").unwrap_or_else(|| "").to_string(), query.get("middleName").unwrap_or_else(|| "").to_string(), query.get("lastName").unwrap_or_else(|| "").to_string()]), reqwest::Method::POST, Some(tkn), None).await.stringify())
+    .body(BSAPI::request_handler::send_request(Client::new(), BSAPI::RequestType::Users(vec![query.get("email").unwrap_or_else(|| "").to_string(), query.get("mobile").unwrap_or_else(|| "").to_string(), query.get("firstName").unwrap_or_else(|| "").to_string(), query.get("middleName").unwrap_or_else(|| "").to_string(), query.get("lastName").unwrap_or_else(|| "").to_string()]), reqwest::Method::POST, Some(tkn), None).await.stringify())
 }
 
 #[actix_web::post("/createauthlink")]
@@ -118,7 +119,7 @@ async fn create_auth_link(response_body: String, server_token: actix_web::web::D
     .append_header(("Access-Control-Allow-Origin", "*"))
     .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
     .append_header(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
-    .body(BSAPI::requestHandler::send_request(Client::new(), BSAPI::RequestType::AuthLink(query.get("userID").map(String::from).unwrap()), Method::POST, Some(tkn), None).await.stringify())
+    .body(BSAPI::request_handler::send_request(Client::new(), BSAPI::RequestType::AuthLink(query.get("userID").map(String::from).unwrap()), Method::POST, Some(tkn), None).await.stringify())
 }
 
 #[actix_web::get("/getjob/{job_id}")]
@@ -138,7 +139,7 @@ async fn get_job(url_params: web::Path<String>, server_token: actix_web::web::Da
     .append_header(("Access-Control-Allow-Origin", "*"))
     .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
     .append_header(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
-    .body(BSAPI::requestHandler::send_request(Client::new(), BSAPI::RequestType::Jobs(query), Method::GET, Some(tkn), None).await.stringify())
+    .body(BSAPI::request_handler::send_request(Client::new(), BSAPI::RequestType::Jobs(query), Method::GET, Some(tkn), None).await.stringify())
 }
 
 async fn get_server_token() -> Token {

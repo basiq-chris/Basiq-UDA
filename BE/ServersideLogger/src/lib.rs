@@ -1,17 +1,18 @@
 use std::fmt::{Debug, Display};
+use colored::{self, Colorize};
 
 pub fn print_debug<O: Debug + Display>(msg: O) {
-    println!("DEBUG: {}", msg);
+    println!("{}: {}", "DEBUG".truecolor(0x33, 0x33, 0x33), msg);
 }
 
 pub fn print_info<O: Debug + Display>(msg: O) {
-    println!("INFO: {}", msg);
+    println!("{}: {}", "INFO".white(), msg);
 }
 
 pub fn print_warning<O: Debug + Display>(msg: O) {
-    println!("WARN: {}", msg);
+    println!("{}: {}", "WARN".bright_yellow(), msg);
 }
 
 pub fn print_error<O: Debug + Display>(msg: O) {
-    println!("ERROR: {}", msg);
+    println!("{}: {}", "ERROR".bright_red(), msg);
 }

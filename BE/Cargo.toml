@@ -1,5 +1,5 @@
 [package]
-name = "SallyAx-Backend"
+name = "sally_ax_backend"
 version = "0.1.0"
 edition = "2021"
 description = "The backend for the SallyAX Application"
@@ -9,9 +9,9 @@ description = "The backend for the SallyAX Application"
 [dependencies]
 reqwest = "^0"
 serde_json = "^1"
-Basiq_API = {path = "./Basiq_API", version = "0.1.0"}
-SXL = {version = "0.1.0", path = "./SXL"}
-Logger = {version = "0.1.0", path = "./ServersideLogger", package = "ServersideLogger"}
+basiq_api = {path = "./Basiq_API", version = "0.1.0"}
+sxl = {version = "0.1.0", path = "./SXL"}
+Logger = {version = "0.1.0", path = "./ServersideLogger", package = "serverside_logger"}
 actix-web = "^4"
 qstring = "^0"
 tokio = "1.35.1"
