@@ -15,8 +15,8 @@ async fn main() -> Result<(), std::io::Error> {
     tokio::spawn(async {
         let client = reqwest::Client::new();
         loop {
-            Logger::print_info("Starting user purger");
             tokio::time::sleep(tokio::time::Duration::from_secs(178600)).await;
+            Logger::print_info("Starting user purger");
             let token = get_server_token().await.token;
             
             let users: Value = client.get("https://au-api.basiq.io/users")
