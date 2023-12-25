@@ -2,14 +2,43 @@
 use BSAPI::{requestHandler::send_request, Token};
 use actix_web::{Responder, HttpServer, App, HttpResponseBuilder, web::{self}};
 use qstring::QString;
-use reqwest::{StatusCode, Client, Method};
+use reqwest::{StatusCode, Client, Method, header::ACCEPT};
 use Basiq_API as BSAPI;
 use serde_json::Value;
 use std::{sync::Mutex, str::FromStr};
 use Logger;
+use tokio;
 
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
+
+    tokio::spawn(async {
+        let client = reqwest::Client::new();
+        loop {
+            Logger::print_info("Starting user purger");
+            tokio::time::sleep(tokio::time::Duration::from_secs(178600)).await;
+            let token = get_server_token().await.token;
+            
+            let users: Value = client.get("https://au-api.basiq.io/users")
+            .bearer_auth(token.clone())
+            .header(ACCEPT, "application/json").send().await.unwrap().json().await.unwrap();
+            let users = users["data"].as_array().unwrap();
+            for user in users.iter() {
+                let consent: Value = client.get(format!("https://au-api.basiq.io/users/{}/consents", user["id"].as_str().unwrap()))
+                .bearer_auth(token.clone())
+                .header(ACCEPT, "application/json").send().await.unwrap().json().await.unwrap();
+
+                if consent["status"].as_str().unwrap_or_else(|| "expired") == "expired" {
+                    Logger::print_warning(format!("User {}, is being purged", user["id"].as_str().unwrap()));
+                    drop(consent);
+                    let _ = client.delete(format!("https://au-api.basiq.io/users/{}", user["id"].as_str().unwrap()))
+                    .bearer_auth(token.clone())
+                    .header(ACCEPT, "application/json").send();
+                    Logger::print_info(format!("User {}, as been deleted", user["id"].as_str().unwrap()));
+                }
+            }
+        }
+    });
 
     let token = actix_web::web::Data::new(ServerToken {
         token: Mutex::new(get_server_token().await)
