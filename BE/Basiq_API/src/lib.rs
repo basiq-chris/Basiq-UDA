@@ -1,6 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub mod requestHandler;
+pub mod request_handler;
 
 pub enum RequestType {
     //KeyType

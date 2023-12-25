@@ -1,5 +1,5 @@
 [package]
-name = "ServersideLogger"
+name = "serverside_logger"
 version = "0.1.0"
 edition = "2021"
 description = "Console logger to better output the current status of execution, etc"
