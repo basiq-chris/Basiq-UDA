@@ -19,46 +19,90 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
 
+  List<Widget> getAccounts() {
+    LocalStorage localStore = LocalStorage("currentSession");
+    bool jobFailed = false;
+    bool jobCompleted = false;
+    getJobID() => {localStore.ready.then((_) => localStore.getItem("jobID"))} as String;
+    String jobID = getJobID();
+    List<AccountChip> accounts = <AccountChip>[];
+    while (!jobCompleted) {
+      http.post(Uri.parse("http://127.0.0.1/job/$jobID/poll")).then((resp) => {
+        if (resp.statusCode == 200) {
+          jobCompleted = true,
+      } else if (resp.statusCode == 424) {
+          jobCompleted = true,
+          jobFailed = true,
+        }
+      });
+    }
+    
+  }
+
   @override
   Widget build(BuildContext context) {
     LocalStorage localStore = LocalStorage("currentSession");
     List<Widget> accounts = [];
 
     return MaterialApp(
+      navigatorKey: DashboardContext.navKey,
       title: "Dashboard",
       home: Scaffold(
           body: ListView.builder(
             itemCount: accounts.length,
+            itemBuilder: (ctx, cnt) => {
+              await localStore.ready;
+
+
+              //return AccountChip();
+            },
           ),
       ),
     );
   }
 }
 
-class AccountChip extends StatefulWidget {
+class AccountChip extends StatelessWidget {
+  final String balance, accountNo, accountHolder, avaliableBalance, _accountID, _bankImg;
 
+  const AccountChip(this.balance, this.accountNo, this.accountHolder, this.avaliableBalance, this._accountID, this._bankImg, {super.key});
 
-  @override
-  State<StatefulWidget> createState() => _AccountChipState();
-
-}
-
-class _AccountChipState extends State<AccountChip> {
-  late final String accountName, balance, avaliableFunds, accountNo;
-
-  void setInfo(Map<String, dynamic> accJSON) {
-    setState(() {
-      accountName = accJSON["accountHolder"].toString();
-      balance = accJSON["balance"].toString();
-      avaliableFunds = accJSON["avaliableFunds"].toString();
-      accountNo = accJSON["accountNo"].toString();
-    });
+  String getID() {
+    return _accountID;
   }
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
+    return Card(
+      elevation: 2.0,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(2.0))),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              ImageIcon(NetworkImage(_bankImg))
+            ],
+          ),
+          Text(accountHolder),
+          Text(accountNo),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Column(
+                children: [
+                  Text(avaliableBalance),
+                  Text(balance)
+                ],
+              )
+            ],
+          )
+        ],
+      ),
+    );
   }
 
+}
+
+class DashboardContext {
+  static GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
 }
