@@ -215,7 +215,7 @@ async fn get_user_accounts(acc_query: web::Path<String>, server_token: web::Data
 
     
 
-    return HttpResponseBuilder::new(StatusCode::NOT_IMPLEMENTED)
+    return HttpResponseBuilder::new(StatusCode::OK)
         .append_header(("Access-Control-Allow-Origin", "*"))
         .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
         .append_header(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
