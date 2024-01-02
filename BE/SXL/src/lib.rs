@@ -70,6 +70,7 @@ impl ResponseLog {
                         data.append(&mut extradata);
                         base.data = data; 
                     }
+                    "list" => base.data = Self::list_handler(json["data"].as_array().unwrap()),
                     _ => panic!("Unsupported type {}; Mention this to the package maintainer", value)
                 }
             },
@@ -83,6 +84,31 @@ impl ResponseLog {
         }
 
         base
+        }
+
+        fn list_handler(list_json: &Vec<Value>) -> Vec<Box<(String, String)>> {
+            let mut data: Vec<serde_json::Map<String, Value>> = Vec::new();
+            let ttype: String = list_json[0]["type"].as_str().unwrap_or_else(|| "null").to_string();
+
+            for e in list_json {
+                match e["type"].as_str().unwrap() {
+                    "account" => {
+                        let mut account: serde_json::Map<String, Value> = serde_json::Map::new();
+                        for key in ["id", "accountHolder", "accountNumber", "avaliableFunds", "balance", "name"] {
+                            account.insert(key.to_string(), e[key].clone());
+                        }
+                        data.push(account);
+                    }
+                    "error" => panic!("Error recieved from Basiq\ncode: {}\ntitle: {}\ndetail: {}", e["code"].as_str().unwrap(), e["title"].as_str().unwrap(), e["detail"].as_str().unwrap()),
+                    _ => panic!("Unknown list item recieved: '{}'", e["type"].as_str().unwrap())
+                }
+            }
+            let mut json_array: Vec<Value> = Vec::new(); 
+            for ele in data {
+                json_array.push(Value::Object(ele));
+            }
+
+            return vec![Box::new((ttype, Value::Array(json_array).to_string()))];
         }
     }
 

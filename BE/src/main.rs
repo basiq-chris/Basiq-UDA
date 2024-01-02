@@ -52,6 +52,7 @@ async fn main() -> Result<(), std::io::Error> {
         .service(create_auth_link)
         .service(get_job)
         .service(job_poll)
+        .service(get_user_accounts)
         .app_data(token.clone())
     })
     .bind(("127.0.0.1", 8642))?
@@ -162,7 +163,7 @@ async fn job_poll(job_query: web::Path<String>, server_token: actix_web::web::Da
     let poll_info = Value::from_str(reqwest::Client::new().get(&("https://au-api.basiq.io/jobs/".to_owned() + job_id.as_str()))
     .bearer_auth(tkn.token).send().await.unwrap().text().await.unwrap().as_str()).unwrap();
 #[allow(non_snake_case)]
-let mut hasFailed = false;
+    let mut hasFailed = false;
 #[allow(non_snake_case)]
     let mut isSuccessful = false;
 
@@ -198,11 +199,27 @@ let mut hasFailed = false;
     }
 }
 
-/* pub async fn get_all_users(token: String) -> Vec<String> {
-    let req = reqwest::Client::get("https://au-api.basiq.io/users")
-    .header(ACCEPT, "application/json")
-    .bearer_auth(token)
-    .send().await.unwrap();
-} */
+#[actix_web::get("/user/{user_id}/getaccounts")]
+async fn get_user_accounts(acc_query: web::Path<String>, server_token: web::Data<ServerToken>) -> impl Responder {
+    let user_id = acc_query.into_inner();
+
+    Logger::print_debug("GET request made to getaccounts");
+    Logger::print_debug("Checking token health".to_string());
+    let mut token = server_token.token.lock().unwrap();
+    if token.has_expired() {
+        Logger::print_info("Token expired");
+        *token = get_server_token().await;
+    }
+    let tkn = token.clone();
+    drop(token);
+
+    
+
+    return HttpResponseBuilder::new(StatusCode::NOT_IMPLEMENTED)
+        .append_header(("Access-Control-Allow-Origin", "*"))
+        .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
+        .append_header(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
+        .body(BSAPI::request_handler::send_request(Client::new(), BSAPI::RequestType::Accounts(user_id), Method::GET, Some(tkn), None).await.stringify());
+}
 
 

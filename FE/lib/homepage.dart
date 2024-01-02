@@ -26,6 +26,7 @@ class HomePageState extends State<HomePage> {
     getJobID() => {localStore.ready.then((_) => localStore.getItem("jobID"))} as String;
     String jobID = getJobID();
     List<AccountChip> accounts = <AccountChip>[];
+
     while (!jobCompleted) {
       http.post(Uri.parse("http://127.0.0.1/job/$jobID/poll")).then((resp) => {
         if (resp.statusCode == 200) {
@@ -36,13 +37,20 @@ class HomePageState extends State<HomePage> {
         }
       });
     }
+
+    //Dart's shitty syntax does not allow "non-local returns"
+    if (jobFailed) {
+      return [];
+    }
+
+    
     
   }
 
   @override
   Widget build(BuildContext context) {
     LocalStorage localStore = LocalStorage("currentSession");
-    List<Widget> accounts = [];
+    List<Widget> accounts = getAccounts();
 
     return MaterialApp(
       navigatorKey: DashboardContext.navKey,
@@ -50,11 +58,8 @@ class HomePageState extends State<HomePage> {
       home: Scaffold(
           body: ListView.builder(
             itemCount: accounts.length,
-            itemBuilder: (ctx, cnt) => {
-              await localStore.ready;
+            itemBuilder: (ctx, idx) => {
 
-
-              //return AccountChip();
             },
           ),
       ),

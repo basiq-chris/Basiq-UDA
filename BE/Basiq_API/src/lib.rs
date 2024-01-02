@@ -12,7 +12,9 @@ pub enum RequestType {
     //ID/userID
     AuthLink(String),
     //ID/userID
-    Jobs(String)
+    Jobs(String),
+    //UserID
+    Accounts(String)
 }
 
 #[allow(non_camel_case_types)]
