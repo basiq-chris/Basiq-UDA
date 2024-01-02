@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'BE'",
+            "name": "Debug the backend",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=BE",
-                    "--package=BE"
+                    "--bin=sally_ax_backend",
+                    "--package=sally_ax_backend"
                 ],
                 "filter": {
-                    "name": "BE",
+                    "name": "sally_ax_backend",
                     "kind": "bin"
                 }
             },
@@ -25,16 +25,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'BE'",
+            "name": "Debug unit tests in the backend",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=BE",
-                    "--package=BE"
+                    "--bin=sally_ax_backend",
+                    "--package=sally_ax_backend"
                 ],
                 "filter": {
-                    "name": "BE",
+                    "name": "sally_ax_backend",
                     "kind": "bin"
                 }
             },

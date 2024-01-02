@@ -94,7 +94,7 @@ impl ResponseLog {
                 match e["type"].as_str().unwrap() {
                     "account" => {
                         let mut account: serde_json::Map<String, Value> = serde_json::Map::new();
-                        for key in ["id", "accountHolder", "accountNumber", "avaliableFunds", "balance", "name"] {
+                        for key in ["id", "accountHolder", "accountNo", "availableFunds", "balance", "name"] {
                             account.insert(key.to_string(), e[key].clone());
                         }
                         data.push(account);
@@ -139,7 +139,11 @@ impl Log {
         let mut payload: String = String::from("");
         for x in self.res.data {
             let value = *x;
+            if value.0.contains(|x| x == '[') || value.1.contains(|x| x == '[') {
+                payload += &format!(r#""{}":{},"#, value.0.as_str(), value.1.as_str());
+            } else {
             payload += &format!(r#""{}":"{}","#, value.0.as_str(), value.1.as_str());
+            }
         }
         payload.pop();
         let response = format!(r#"{{"headers":{{{}}},"status":"{}", "payload":{{{}}}}}"#, response_headers, self.res.status.as_str(), payload);
