@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:js_interop';
 
 import 'package:flutter/material.dart';
 import 'package:localstorage/localstorage.dart';
@@ -19,12 +20,13 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
 
-  List<Widget> getAccounts() {
+ static Future<List<Widget>> getAccounts() async {
     LocalStorage localStore = LocalStorage("currentSession");
     bool jobFailed = false;
     bool jobCompleted = false;
-    getJobID() => {localStore.ready.then((_) => localStore.getItem("jobID"))} as String;
-    String jobID = getJobID();
+    await localStore.ready;
+    String jobID = localStore.getItem("jobID").toString();
+    String userID = localStore.getItem("currentUser").toString();
     List<AccountChip> accounts = <AccountChip>[];
 
     while (!jobCompleted) {
@@ -43,21 +45,25 @@ class HomePageState extends State<HomePage> {
       return [];
     }
 
-    
-    
+    var resp = await http.get(Uri.parse("http://127.0.0.1:8642/user/$userID/getaccounts"));
+        for(var acc in jsonDecode(resp.body)["response_data"]["payload"]["accounts"]) {
+          var inst = acc["institution"].toString();
+          inst = await http.get(Uri.parse("au-api.basiq.io/public/connectors?filter=connector.id.eq('$inst')")).then((value) => value.body);
+          inst = jsonDecode(resp.body)["data"][0]["institution"]["logo"]["square"].toString();
+          accounts.add(AccountChip(acc["balance"].toString(), acc["accountNumber"].toString(), acc["accountHolder"].toString(), acc["availableBalance"].toString(), acc["id"].toString(), inst));
+        }
+    return accounts;
   }
 
   @override
   Widget build(BuildContext context) {
     LocalStorage localStore = LocalStorage("currentSession");
-    List<Widget> accounts = getAccounts();
 
     return MaterialApp(
       navigatorKey: DashboardContext.navKey,
       title: "Dashboard",
       home: Scaffold(
           body: ListView.builder(
-            itemCount: accounts.length,
             itemBuilder: (ctx, idx) => {
 
             },
@@ -106,6 +112,21 @@ class AccountChip extends StatelessWidget {
     );
   }
 
+}
+
+class AccountListBuilder extends StatelessWidget {
+  const AccountListBuilder({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(future: HomePageState.getAccounts(), builder: (ctx, snap) {
+      if (snap.connectionState == ConnectionState.waiting) {
+        return const Center(child: CircularProgressIndicator(color: Color(0x00BD1904)));
+      }
+      else if (snap.connectionState == ConnectionState.)
+    })
+  }
+  
 }
 
 class DashboardContext {

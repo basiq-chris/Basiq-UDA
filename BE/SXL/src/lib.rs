@@ -94,7 +94,7 @@ impl ResponseLog {
                 match e["type"].as_str().unwrap() {
                     "account" => {
                         let mut account: serde_json::Map<String, Value> = serde_json::Map::new();
-                        for key in ["id", "accountHolder", "accountNo", "availableFunds", "balance", "name"] {
+                        for key in ["id", "accountHolder", "accountNo", "availableFunds", "balance", "name", "institution"] {
                             account.insert(key.to_string(), e[key].clone());
                         }
                         data.push(account);
