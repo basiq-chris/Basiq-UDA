@@ -4,7 +4,7 @@ use qstring::QString;
 use reqwest::{StatusCode, Client, Method, header::ACCEPT};
 use basiq_api as BSAPI;
 use serde_json::Value;
-use std::{sync::Mutex, str::FromStr};
+use std::{sync::Mutex, str::FromStr, ops::Deref};
 use Logger;
 use tokio;
 
@@ -222,4 +222,24 @@ async fn get_user_accounts(acc_query: web::Path<String>, server_token: web::Data
         .body(BSAPI::request_handler::send_request(Client::new(), BSAPI::RequestType::Accounts(user_id), Method::GET, Some(tkn), None).await.stringify());
 }
 
+#[actix_web::get("/instimg/{inst_id}")]
+async fn get_institution_img_url(inst: web::Path<String>, server_token: web::Data<ServerToken>) -> impl Responder {
+    let instu = inst.into_inner();
+
+    Logger::print_debug("IMG Grabbed for ".to_owned() + instu.clone().as_str());
+    Logger::print_debug("Checking token health".to_string());
+    let mut token = server_token.token.lock().unwrap();
+    if token.has_expired() {
+        Logger::print_info("Token expired");
+        *token = get_server_token().await;
+    }
+    let tkn = token.clone();
+    drop(token);
+    let imgurl = reqwest::Client::new().get(format!("https://au-api.basiq.io/public/connectors?filter=connector.id.eq('{}')", instu.as_str())).header(ACCEPT, "application/json").bearer_auth(tkn.token).send().await.unwrap().json::<Value>().await.unwrap()["data"][0]["institution"]["logo"]["square"].as_str().unwrap().to_string();
+    return HttpResponseBuilder::new(StatusCode::FOUND)
+        .append_header(("Access-Control-Allow-Origin", "*"))
+        .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
+        .append_header(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
+        .body(imgurl);
+}
 

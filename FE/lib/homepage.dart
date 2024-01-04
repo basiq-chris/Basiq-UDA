@@ -48,8 +48,7 @@ class HomePageState extends State<HomePage> {
     var resp = await http.get(Uri.parse("http://127.0.0.1:8642/user/$userID/getaccounts"));
         for(var acc in jsonDecode(resp.body)["response_data"]["payload"]["accounts"]) {
           var inst = acc["institution"].toString();
-          inst = await http.get(Uri.parse("au-api.basiq.io/public/connectors?filter=connector.id.eq('$inst')")).then((value) => value.body);
-          inst = jsonDecode(resp.body)["data"][0]["institution"]["logo"]["square"].toString();
+          inst = await http.get(Uri.parse("http://127.0.0.1:8642/instimg/$inst")).then((value) => value.body);
           accounts.add(AccountChip(acc["balance"].toString(), acc["accountNumber"].toString(), acc["accountHolder"].toString(), acc["availableBalance"].toString(), acc["id"].toString(), inst));
         }
     return accounts;
@@ -62,14 +61,10 @@ class HomePageState extends State<HomePage> {
     return MaterialApp(
       navigatorKey: DashboardContext.navKey,
       title: "Dashboard",
-      home: Scaffold(
-          body: ListView.builder(
-            itemBuilder: (ctx, idx) => {
-
-            },
+      home: const Scaffold(
+          body: AccountListBuilder()
           ),
-      ),
-    );
+      );
   }
 }
 
@@ -123,8 +118,23 @@ class AccountListBuilder extends StatelessWidget {
       if (snap.connectionState == ConnectionState.waiting) {
         return const Center(child: CircularProgressIndicator(color: Color(0x00BD1904)));
       }
-      else if (snap.connectionState == ConnectionState.)
-    })
+
+      else if (snap.connectionState == ConnectionState.none) {
+        if (!snap.hasError) {
+          return const Center(child: Text("Something went wrong"));
+        } else {
+          var err = snap.error.toString();
+          return Center(child: Text("This went wrong, $err"));
+        }
+      }
+      else if (snap.connectionState != ConnectionState.done) {
+        return const Center(child: Text("Maybe a little longer?"));
+      }
+
+      return ListView(
+        children: snap.data!,
+      );
+    });
   }
   
 }
