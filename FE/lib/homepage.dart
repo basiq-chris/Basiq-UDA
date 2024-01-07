@@ -30,18 +30,18 @@ class HomePageState extends State<HomePage> {
     List<AccountChip> accounts = <AccountChip>[];
 
     while (!jobCompleted) {
-      http.post(Uri.parse("http://127.0.0.1/job/$jobID/poll")).then((resp) => {
+      var resp = await http.post(Uri.parse("http://127.0.0.1/job/$jobID/poll"));
         if (resp.statusCode == 200) {
-          jobCompleted = true,
+          jobCompleted = true;
       } else if (resp.statusCode == 424) {
-          jobCompleted = true,
-          jobFailed = true,
+          jobCompleted = true;
+          jobFailed = true;
         }
-      });
+
     }
 
     //Dart's shitty syntax does not allow "non-local returns"
-    if (jobFailed) {
+    if (jobFailed || !jobCompleted) {
       return [];
     }
 
@@ -115,8 +115,8 @@ class AccountListBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(future: HomePageState.getAccounts(), builder: (ctx, snap) {
-      if (snap.connectionState == ConnectionState.waiting) {
-        return const Center(child: CircularProgressIndicator(color: Color(0x00BD1904)));
+      if (snap.connectionState == ConnectionState.waiting || (snap.connectionState == ConnectionState.done && !snap.hasData)) {
+        return const Center(child: CircularProgressIndicator(color: Color(0x00BD1904), value: 50,));
       }
 
       else if (snap.connectionState == ConnectionState.none) {
@@ -127,13 +127,12 @@ class AccountListBuilder extends StatelessWidget {
           return Center(child: Text("This went wrong, $err"));
         }
       }
-      else if (snap.connectionState != ConnectionState.done) {
-        return const Center(child: Text("Maybe a little longer?"));
-      }
-
-      return ListView(
+    if (snap.connectionState == ConnectionState.done) {
+     return ListView(
         children: snap.data!,
       );
+  }
+    throw Exception("Unexpected end of function");
     });
   }
   
