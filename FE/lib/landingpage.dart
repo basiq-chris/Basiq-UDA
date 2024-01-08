@@ -3,6 +3,7 @@ import 'package:fe/homepage.dart';
 import 'package:fe/signup.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:localstorage/localstorage.dart';
 
 void main() => runApp(const Application());
 
@@ -42,6 +43,7 @@ class RouterWidget extends StatelessWidget {
 class LandingPageState extends StatefulWidget {
   const LandingPageState({super.key});
 
+
   @override
   State<StatefulWidget> createState() => LandingPage();
 
@@ -49,9 +51,16 @@ class LandingPageState extends StatefulWidget {
 
 class LandingPage extends State<LandingPageState> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  LocalStorage localStore = LocalStorage("currentSession");
 
   @override
   Widget build(BuildContext context) {
+    localStore.ready.then((value) => {
+      if (localStore.getItem("currentUser") != null) {
+        context.go("/dashboard"),
+      }
+    });
+
     return Scaffold(
         body: Form(
           key: _formKey,

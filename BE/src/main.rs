@@ -4,7 +4,7 @@ use qstring::QString;
 use reqwest::{StatusCode, Client, Method, header::ACCEPT};
 use basiq_api as BSAPI;
 use serde_json::Value;
-use std::{sync::Mutex, str::FromStr, ops::Deref};
+use std::{sync::Mutex, str::FromStr};
 use Logger;
 use tokio;
 

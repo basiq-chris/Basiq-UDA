@@ -29,20 +29,12 @@ class HomePageState extends State<HomePage> {
     String userID = localStore.getItem("currentUser").toString();
     List<AccountChip> accounts = <AccountChip>[];
 
-    while (!jobCompleted) {
-      var resp = await http.post(Uri.parse("http://127.0.0.1/job/$jobID/poll"));
-        if (resp.statusCode == 200) {
-          jobCompleted = true;
-      } else if (resp.statusCode == 424) {
-          jobCompleted = true;
-          jobFailed = true;
-        }
-
-    }
-
-    //Dart's shitty syntax does not allow "non-local returns"
-    if (jobFailed || !jobCompleted) {
-      return [];
+    var resp = await http.get(Uri.parse("http://172.168.0.1:8642/getjob/$jobID/poll"));
+    switch (resp.statusCode) {
+      case 424:
+        return [];
+      case 102:
+        return [];
     }
 
     var resp = await http.get(Uri.parse("http://127.0.0.1:8642/user/$userID/getaccounts"));
