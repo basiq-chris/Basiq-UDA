@@ -7,7 +7,7 @@ use serde_json::Value;
 use std::{sync::Mutex, str::FromStr};
 use Logger;
 use tokio;
-use base64::{Engine, read::DecoderReader, engine};
+use base64::Engine;
 
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
