@@ -7,11 +7,13 @@ import 'dart:convert';
 
 class TransactionScreen extends StatelessWidget {
 
-  Future<List<TableRow>> getTransactions(String accID) async {
+  Future<List<TableRow>> getTransactions() async {
+    if (Uri.base.fragment == "/dashboard") {await Future.delayed(const Duration(milliseconds: 20));}
+    String accID = Uri.base.fragment.split("/").last;
     List<TableRow> transactions = <TableRow>[];
     LocalStorage localStore = LocalStorage("currentSession");
     await localStore.ready;
-    String payload = localStore.getItem("userID") + ":" + accID;
+    String payload = "${localStore.getItem("userID")}:$accID";
     payload = base64Encode(payload.codeUnits).toString();
 
     var trans = jsonDecode((await http.get(Uri.parse("http://localhost:8642/gettransactions/$payload"))).body);
@@ -19,7 +21,7 @@ class TransactionScreen extends StatelessWidget {
       transactions.add(
         TableRow(
           children: [
-            Text(t["date"].toString()),
+            Text(t["postDate"].toString()),
             Text(t["description"].toString()),
             Text(t["amount"].toString())
           ]
@@ -33,8 +35,7 @@ class TransactionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String accID = Uri.base.path.split("/").last;
-    return FutureBuilder(future: getTransactions(accID), builder: (ctx, sn) {
+    return FutureBuilder(future: getTransactions(), builder: (ctx, sn) {
       if (sn.connectionState == ConnectionState.waiting) {
         return const Scaffold(
           body: Column(
@@ -51,10 +52,10 @@ class TransactionScreen extends StatelessWidget {
         );
       }
       else if (sn.hasError) {
-        return const Scaffold(
+        return Scaffold(
           backgroundColor: Colors.red,
           body: Center(
-            child: Text("ERROR FETCHING TRANSACTIONS"),
+            child: Text("ERROR FETCHING TRANSACTIONS\n ${sn.error!}\n\nIf this is not a Basiq error, contact the maintainer of this package"),
           ),
         );
       }
@@ -63,7 +64,7 @@ class TransactionScreen extends StatelessWidget {
         return Scaffold(
           body: Column(
             children: [
-              Row(children: [Text("Account: $accID")]),
+              const Row(children: [Text("Account:")]),
               const Spacer(),
               Table(
                 children: transacData,

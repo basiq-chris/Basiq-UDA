@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:localstorage/localstorage.dart';
 import 'package:http/http.dart' as http;
@@ -97,7 +98,9 @@ class AccountChip extends StatelessWidget {
       child: Column(
         children: [
           Row(
-            children: [ImageIcon(NetworkImage(_bankImg))],
+            children: [SvgPicture.network(_bankImg, width: 16, height: 16,
+            placeholderBuilder: (BuildContext ctx) => const CircularProgressIndicator()
+            ,)], //ImageIcon(NetworkImage(_bankImg))
           ),
           Text(accountHolder),
           Text(accountNo),
