@@ -55,6 +55,7 @@ async fn main() -> Result<(), std::io::Error> {
         .service(job_poll)
         .service(get_user_accounts)
         .service(get_institution_img_url)
+        .service(get_transactions)
         .app_data(token.clone())
     })
     .bind(("localhost", 8642))?
@@ -262,7 +263,7 @@ async fn get_transactions(b64: web::Path<String>, server_token: web::Data<Server
 
     let data = b64_decoded_string.split(":").collect::<Vec<&str>>();
 
-    return HttpResponseBuilder::new(StatusCode::NOT_IMPLEMENTED)
+    return HttpResponseBuilder::new(StatusCode::OK)
     .append_header(("Access-Control-Allow-Origin", "*"))
     .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
     .append_header(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
