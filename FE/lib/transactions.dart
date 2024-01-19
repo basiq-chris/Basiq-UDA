@@ -14,7 +14,7 @@ class TransactionScreen extends StatelessWidget {
     await localStore.ready;
     String payload = "${localStore.getItem("currentUser")}:$accID";
     payload = base64Encode(payload.codeUnits).toString();
-
+    //! TODO: Flexbox for the transactions
     var trans = jsonDecode((await http.get(Uri.parse("http://localhost:8642/gettransactions/$payload"))).body);
     for (var t in trans["response_data"]["payload"]["transaction"]) {
       transactions.add(
