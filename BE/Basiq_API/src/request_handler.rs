@@ -182,6 +182,22 @@ pub async fn send_request(client: reqwest::Client, request_type: BSAPI::RequestT
                 },
                 _ => panic!("Operation not supported at this current time")
             }
+        },
+        BSAPI::RequestType::Transactions(user) => {
+            match method {
+                Method::GET => {
+                    let req = client.get(format!("{}/users/{}/transactions", urlbase, user))
+                    .bearer_auth(token.unwrap())
+                    .query(&[("filter", format!("account.id.eq('{}')", data.clone().unwrap()))])
+                    .header(ACCEPT, "application/json");
+
+                    return Log {
+                        req: RequestLog::new(&req, vec![Box::new(("accountID".to_string(), data.unwrap()))]),
+                        res: ResponseLog::new(req.send().await.unwrap()).await
+                    }
+                }
+                _ => panic!("Operation not supported at this current time")
+            }
         }
     }
 }

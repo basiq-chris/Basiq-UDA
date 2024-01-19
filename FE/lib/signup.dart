@@ -140,7 +140,7 @@ class SignupForm extends State<SignupState> {
                           lclStg.setItem("currentUser", userResponseJson["response_data"]["payload"]["id"].toString()),
                           lclStg.setItem("userPayload", userResponseJson["response_data"]["payload"].toString()),
                           //debugPrint(user_response_json["response_data"]["payload"]["id"]),
-                          authLinkResponse = await http.post(Uri.parse("http://127.0.0.1:8642/createauthlink"), body: {"userID": userResponseJson["response_data"]["payload"]["id"]}),
+                          authLinkResponse = await http.post(Uri.parse("http://localhost:8642/createauthlink"), body: {"userID": userResponseJson["response_data"]["payload"]["id"]}),
                           authLinkResponseJson = jsonDecode(authLinkResponse.body),
                           if (await canLaunchUrlString(authLinkResponseJson["response_data"]["payload"]["authLink"].toString())) {
                             launchUrl(Uri.parse(authLinkResponseJson["response_data"]["payload"]["authLink"].toString()), webOnlyWindowName: "_self")

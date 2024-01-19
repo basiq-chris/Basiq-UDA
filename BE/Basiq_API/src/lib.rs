@@ -14,7 +14,9 @@ pub enum RequestType {
     //ID/userID
     Jobs(String),
     //UserID
-    Accounts(String)
+    Accounts(String),
+    //UserID
+    Transactions(String)
 }
 
 #[allow(non_camel_case_types)]

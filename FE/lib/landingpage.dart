@@ -1,6 +1,7 @@
 import 'package:fe/callback.dart';
 import 'package:fe/homepage.dart';
 import 'package:fe/signup.dart';
+import 'package:fe/transactions.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:localstorage/localstorage.dart';
@@ -25,7 +26,9 @@ final _router = GoRouter(routes: [
   GoRoute(path: "/dashboard",
       builder: (context, state) => const HomePage()),
   GoRoute(path: "/callback",
-      builder: (context, state) => const Callback())
+      builder: (context, state) => const Callback()),
+  GoRoute(path: "/transactions/:accountid",
+      builder: (context, state) => TransactionScreen())
 ]);
 
 class RouterWidget extends StatelessWidget {

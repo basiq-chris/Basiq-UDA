@@ -99,6 +99,13 @@ impl ResponseLog {
                         }
                         data.push(account);
                     }
+                    "transaction" => {
+                        let mut transaction = serde_json::Map::new();
+                        for key in ["postDate", "description", "amount"] {
+                            transaction.insert(key.to_string(), e[key].clone());
+                        }
+                        data.push(transaction);
+                    }
                     "error" => panic!("Error recieved from Basiq\ncode: {}\ntitle: {}\ndetail: {}", e["code"].as_str().unwrap(), e["title"].as_str().unwrap(), e["detail"].as_str().unwrap()),
                     _ => panic!("Unknown list item recieved: '{}'", e["type"].as_str().unwrap())
                 }

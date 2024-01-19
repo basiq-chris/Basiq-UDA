@@ -7,6 +7,7 @@ use serde_json::Value;
 use std::{sync::Mutex, str::FromStr};
 use Logger;
 use tokio;
+use base64::{Engine, read::DecoderReader, engine};
 
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
@@ -53,9 +54,10 @@ async fn main() -> Result<(), std::io::Error> {
         .service(get_job)
         .service(job_poll)
         .service(get_user_accounts)
+        .service(get_institution_img_url)
         .app_data(token.clone())
     })
-    .bind(("127.0.0.1", 8642))?
+    .bind(("localhost", 8642))?
     .run()
     .await
 }
@@ -148,7 +150,7 @@ async fn get_server_token() -> Token {
     Token::new(req.res.data)
 }
 
-#[actix_web::get("/job/{job_id}/poll")]
+#[actix_web::get("/poll/{job_id}")]
 async fn job_poll(job_query: web::Path<String>, server_token: actix_web::web::Data<ServerToken>) -> impl Responder {
     let job_id = job_query.into_inner();
     Logger::print_debug("Polling job, ".to_owned() + job_id.as_str());
@@ -203,7 +205,7 @@ async fn job_poll(job_query: web::Path<String>, server_token: actix_web::web::Da
 async fn get_user_accounts(acc_query: web::Path<String>, server_token: web::Data<ServerToken>) -> impl Responder {
     let user_id = acc_query.into_inner();
 
-    Logger::print_debug("GET request made to getaccounts");
+    Logger::print_debug("GET request made to /getaccounts");
     Logger::print_debug("Checking token health".to_string());
     let mut token = server_token.token.lock().unwrap();
     if token.has_expired() {
@@ -235,7 +237,7 @@ async fn get_institution_img_url(inst: web::Path<String>, server_token: web::Dat
     }
     let tkn = token.clone();
     drop(token);
-    let imgurl = reqwest::Client::new().get(format!("https://au-api.basiq.io/public/connectors?filter=connector.id.eq('{}')", instu.as_str())).header(ACCEPT, "application/json").bearer_auth(tkn.token).send().await.unwrap().json::<Value>().await.unwrap()["data"][0]["institution"]["logo"]["square"].as_str().unwrap().to_string();
+    let imgurl = reqwest::Client::new().get(format!("https://au-api.basiq.io/public/connectors?filter=connector.id.eq('{}')", instu.as_str())).header(ACCEPT, "application/json").bearer_auth(tkn.token).send().await.unwrap().json::<Value>().await.unwrap()["data"][0]["institution"]["logo"]["links"]["square"].as_str().unwrap().to_string();
     return HttpResponseBuilder::new(StatusCode::FOUND)
         .append_header(("Access-Control-Allow-Origin", "*"))
         .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
@@ -243,3 +245,24 @@ async fn get_institution_img_url(inst: web::Path<String>, server_token: web::Dat
         .body(imgurl);
 }
 
+// data type std: user-id:account-id (guid, guid)
+#[actix_web::get("/gettransactions/{acc_info}")]
+async fn get_transactions(b64: web::Path<String>, server_token: web::Data<ServerToken>) -> impl Responder {
+    let b64_decoded_string = std::str::from_utf8(&base64::prelude::BASE64_STANDARD.decode(b64.into_inner()).unwrap()).unwrap().to_string();
+
+    Logger::print_debug("GET request made to /gettransactrions");
+    Logger::print_debug("Checking token health".to_string());
+    let mut token = server_token.token.lock().unwrap();
+    if token.has_expired() {
+        Logger::print_info("Token expired");
+        *token = get_server_token().await;
+    }
+    let tkn = token.clone();
+    drop(token);
+
+    return HttpResponseBuilder::new(StatusCode::OK)
+    .append_header(("Access-Control-Allow-Origin", "*"))
+    .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
+    .append_header(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
+    .finish();
+}
