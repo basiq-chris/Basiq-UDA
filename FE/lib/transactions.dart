@@ -1,9 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:localstorage/localstorage.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:localstorage/localstorage.dart';
 
 class TransactionScreen extends StatelessWidget {
 
@@ -13,11 +12,11 @@ class TransactionScreen extends StatelessWidget {
     List<TableRow> transactions = <TableRow>[];
     LocalStorage localStore = LocalStorage("currentSession");
     await localStore.ready;
-    String payload = "${localStore.getItem("userID")}:$accID";
+    String payload = "${localStore.getItem("currentUser")}:$accID";
     payload = base64Encode(payload.codeUnits).toString();
 
     var trans = jsonDecode((await http.get(Uri.parse("http://localhost:8642/gettransactions/$payload"))).body);
-    for (var t in trans["response_data"]["payload"]["transactions"]) {
+    for (var t in trans["response_data"]["payload"]["transaction"]) {
       transactions.add(
         TableRow(
           children: [
