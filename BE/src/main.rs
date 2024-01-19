@@ -260,9 +260,11 @@ async fn get_transactions(b64: web::Path<String>, server_token: web::Data<Server
     let tkn = token.clone();
     drop(token);
 
-    return HttpResponseBuilder::new(StatusCode::OK)
+    let data = b64_decoded_string.split(":").collect::<Vec<&str>>();
+
+    return HttpResponseBuilder::new(StatusCode::NOT_IMPLEMENTED)
     .append_header(("Access-Control-Allow-Origin", "*"))
     .append_header(("Access-Control-Allow-Methods", "GET,POST,DELETE"))
     .append_header(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
-    .finish();
+    .body(BSAPI::request_handler::send_request(Client::new(), BSAPI::RequestType::Transactions(data[0].to_string()), reqwest::Method::GET, Some(tkn), Some(data[1].to_string())).await.stringify());
 }
