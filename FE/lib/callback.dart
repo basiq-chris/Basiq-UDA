@@ -3,8 +3,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:localstorage/localstorage.dart';
 import 'package:http/http.dart' as http;
+import 'package:localstorage/localstorage.dart';
 
 class Callback extends StatelessWidget {
   const Callback({super.key});
@@ -29,9 +29,4 @@ class Callback extends StatelessWidget {
     );
   }
 
-}
-
-class Job {
-  String jobID;
-  Job({required this.jobID});
 }
