@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:localstorage/localstorage.dart';
 import 'package:http/http.dart' as http;
+import 'package:localstorage/localstorage.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,10 +20,11 @@ class HomePageState extends State<HomePage> {
     String jobID = localStore.getItem("jobID").toString();
     String userID = localStore.getItem("currentUser").toString();
     List<AccountChip> accounts = <AccountChip>[];
-    Future<int> jobStatus() async {
-      return (await http.get(Uri.parse("http://localhost:8642/poll/$jobID")))
-          .statusCode;
-    }
+      Future<int> jobStatus() async {
+        return (await http.get(Uri.parse("http://localhost:8642/poll/$jobID")))
+            .statusCode;
+      }
+
 
     Future<void> checkJob() async {
       switch (await jobStatus()) {
@@ -34,8 +35,9 @@ class HomePageState extends State<HomePage> {
           await checkJob();
       }
     }
-
-    await checkJob();
+    if (jobID != null || jobID != "") {
+      await checkJob();
+    }
 
     var resp = await http
         .get(Uri.parse("http://localhost:8642/user/$userID/getaccounts"));
