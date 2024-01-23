@@ -2,7 +2,7 @@ import 'dart:collection';
 
 class Utilities {
   /// Turns rfc3339 String into Human Readable DateTime format
-  String parseRFC3339(String rfc3339) {
+  static String parseRFC3339(String rfc3339) {
     if (!RegExp("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z")
         .hasMatch(rfc3339)) {
       for (var charidx in rfc3339.codeUnits.indexed) {
@@ -22,7 +22,7 @@ class Utilities {
                 (charidx.$2 < 0x30 || charidx.$2 > 0x39)) ||
             (charidx.$1 == 19 && charidx.$2 != 'Z'.codeUnits[0])) {
           throw FormatException(
-              "Illegal char ${charidx.$2} at index ${charidx.$1}");
+              "Illegal char ${charidx.$2.toString()} at index ${charidx.$1}");
         }
       }
     }
