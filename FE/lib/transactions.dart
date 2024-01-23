@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:fe/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:localstorage/localstorage.dart';
@@ -7,12 +8,12 @@ import 'package:localstorage/localstorage.dart';
 class TransactionScreen extends StatelessWidget {
   const TransactionScreen({super.key});
 
-  Future<List<TableRow>> getTransactions() async {
+  Future<List<TransacRow>> getTransactions() async {
     if (Uri.base.fragment == "/dashboard") {
       await Future.delayed(const Duration(milliseconds: 20));
     }
     String accID = Uri.base.fragment.split("/").last;
-    List<TableRow> transactions = <TableRow>[];
+    List<TransacRow> transactions = <TransacRow>[];
     LocalStorage localStore = LocalStorage("currentSession");
     await localStore.ready;
     String payload = "${localStore.getItem("currentUser")}:$accID";
@@ -21,11 +22,11 @@ class TransactionScreen extends StatelessWidget {
             .get(Uri.parse("http://localhost:8642/gettransactions/$payload")))
         .body);
     for (var t in trans["response_data"]["payload"]["transaction"]) {
-      transactions.add(TableRow(children: [
-        Text(t["postDate"].toString()),
-        Text(t["description"].toString()),
-        Text(t["amount"].toString())
-      ]));
+      transactions.add(TransacRow(
+          key: super.key,
+          date: Utilities.parseRFC3339(t["postDate"].toString()),
+          desc: t["description"].toString(),
+          amt: t["amount"].toString()));
     }
 
     return transactions;
@@ -56,19 +57,45 @@ class TransactionScreen extends StatelessWidget {
           } else if (sn.connectionState == ConnectionState.done) {
             var transacData = sn.data!;
             return Scaffold(
-              body: Column(
+              body: Expanded(
+                child: Column(
                 children: [
-                  const Row(children: [Text("Account:")]),
-                  const Spacer(),
-                  SingleChildScrollView(
-                      child: Table(
-                    children: transacData,
-                  ))
+                  Row(children: [
+                    Text("Account: ${Uri.base.fragment.split("/").last}")
+                  ]),
+                  Expanded(
+                      child: ListView.builder(
+                          itemCount: transacData.length,
+                          prototypeItem: transacData[0],
+                          itemBuilder: (ctx, idx) {
+                            return transacData[idx];
+                          }))
                 ],
               ),
-            );
+            ));
           }
           throw Exception("Unknown Error");
         });
+  }
+}
+
+class TransacRow extends StatelessWidget {
+  final String date, desc, amt;
+  const TransacRow(
+      {required super.key,
+      required this.date,
+      required this.desc,
+      required this.amt});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Row(
+      children: [
+        Text(date),
+        Text(desc, textAlign: TextAlign.center,),
+        Text(amt, textAlign: TextAlign.end,)
+      ],
+    ));
   }
 }
