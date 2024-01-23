@@ -2,29 +2,65 @@ import 'dart:collection';
 
 class Utilities {
   /// Turns rfc3339 String into Human Readable DateTime format
+  // "2005-08-15T15:52:01+00:00"
   static String parseRFC3339(String rfc3339) {
-    if (!RegExp("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z")
+    if (!RegExp("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z\$")
         .hasMatch(rfc3339)) {
+      bool isDigit(int char) {
+        return char >= 0x30 && char <= 0x39;
+      }
+      bool isColon(int char) {
+        return char == ':'.codeUnits[0];
+      }
+      bool isDash(int char) {
+        return char == '-'.codeUnits[0];
+      }
+      bool isDateDelimiter(int char) {
+        return char == 'T'.codeUnits[0];
+      }
+      bool isUTCDelimiter(int char) {
+        return char == 'Z'.codeUnits[0];
+      }
+      void throws(int idx, int char) {
+        throw FormatException("Illegal char ${String.fromCharCode(char)} at index $idx}");
+      }
       for (var charidx in rfc3339.codeUnits.indexed) {
-        if ((charidx.$1 <= 4 && (charidx.$2 < 0x30 || charidx.$2 > 0x39)) ||
-            ((charidx.$1 == 4 || charidx.$1 == 7) &&
-                (charidx.$2 != '-'.codeUnits[0])) ||
-            ((charidx.$1 == 6 || charidx.$1 == 7) &&
-                (charidx.$2 < 0x30 || charidx.$2 > 0x39)) ||
-            ((charidx.$1 == 8 || charidx.$1 == 9) &&
-                (charidx.$2 < 0x30 || charidx.$2 > 0x39)) ||
-            (charidx.$1 == 10 && charidx.$2 == 'T'.codeUnitAt(0)) ||
-            ((charidx.$1 == 11 || charidx.$1 == 12) &&
-                (charidx.$2 < 0x30 || charidx.$2 > 0x39)) ||
-            ((charidx.$1 == 13 || charidx.$1 == 16) &&
-                (charidx.$2 == ':'.codeUnitAt(0))) ||
-            ((charidx.$1 == 17 && charidx.$1 == 18) &&
-                (charidx.$2 < 0x30 || charidx.$2 > 0x39)) ||
-            (charidx.$1 == 19 && charidx.$2 != 'Z'.codeUnits[0])) {
-          throw FormatException(
-              "Illegal char ${charidx.$2.toString()} at index ${charidx.$1}");
+        switch (charidx.$1) {
+          case 0:
+          case 1:
+          case 2:
+          case 3:
+          case 5:
+          case 6:
+          case 8:
+          case 9:
+          case 11:
+          case 12:
+          case 14:
+          case 15:
+          case 17:
+          case 18:
+            if (!isDigit(charidx.$2)) {throws(charidx.$1, charidx.$2);}
+            continue;
+          case 4:
+          case 7:
+            if (!isDash(charidx.$2)) {throws(charidx.$1, charidx.$2);}
+            continue;
+          case 10:
+            if (!isDateDelimiter(charidx.$2)) {throws(charidx.$1, charidx.$2);};
+            continue;
+          case 13:
+          case 16:
+            if (!isColon(charidx.$2)) {throws(charidx.$1, charidx.$2);}
+            continue;
+          case 19:
+            if (!isUTCDelimiter(charidx.$2)) {throws(charidx.$1, charidx.$2);}
+            break;
+          default:
+            throw const FormatException("String too large");
         }
       }
+
     }
 
     var splitString = rfc3339.split("T");

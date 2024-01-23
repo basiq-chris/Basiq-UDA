@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:localstorage/localstorage.dart';
 
 class TransactionScreen extends StatelessWidget {
+  const TransactionScreen({super.key});
+
   Future<List<TableRow>> getTransactions() async {
     if (Uri.base.fragment == "/dashboard") {
       await Future.delayed(const Duration(milliseconds: 20));

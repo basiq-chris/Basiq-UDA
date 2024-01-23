@@ -13,4 +13,10 @@ void main() {
 
     expect(() => Utilities.parseRFC3339(invalidRFC3339), throwsFormatException);
   });
+
+  test("Invalid UTC UFC3339", () {
+    const shiftedRFC3339 = "2023-01-07T03:04:05Z+11:00";
+
+    expect(() => Utilities.parseRFC3339(shiftedRFC3339), throwsFormatException);
+  });
 }

@@ -28,7 +28,7 @@ final _router = GoRouter(routes: [
   GoRoute(path: "/callback",
       builder: (context, state) => const Callback()),
   GoRoute(path: "/transactions/:accountid",
-      builder: (context, state) => TransactionScreen())
+      builder: (context, state) => const TransactionScreen())
 ]);
 
 class RouterWidget extends StatelessWidget {
